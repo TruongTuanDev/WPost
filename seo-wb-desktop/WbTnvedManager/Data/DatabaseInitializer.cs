@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
@@ -8,7 +8,29 @@ namespace WbTnvedManager.Data
 {
     public static class DatabaseInitializer
     {
-        public static string DbPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tnved_matrix.db");
+        private static string? _resolvedDbPath;
+        public static string DbPath
+        {
+            get
+            {
+                if (_resolvedDbPath != null) return _resolvedDbPath;
+                try
+                {
+                    var basePath = AppDomain.CurrentDomain.BaseDirectory;
+                    var testFile = Path.Combine(basePath, "write_test.tmp");
+                    File.WriteAllText(testFile, "ok");
+                    File.Delete(testFile);
+                    _resolvedDbPath = Path.Combine(basePath, "tnved_matrix.db");
+                }
+                catch
+                {
+                    var appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WPost");
+                    Directory.CreateDirectory(appDataDir);
+                    _resolvedDbPath = Path.Combine(appDataDir, "tnved_matrix.db");
+                }
+                return _resolvedDbPath;
+            }
+        }
         public static string ConnectionString => $"Data Source={DbPath}";
 
         public static void InitializeDatabase()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -13,10 +13,29 @@ namespace WbTnvedManager.Models
         public bool AutoCheckErrors { get; set; } = true;
         public int ErrorPollIntervalMinutes { get; set; } = 5;
 
-        private static readonly string SettingsFilePath = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            "app_settings.json"
-        );
+        private static string? _resolvedSettingsPath;
+        private static string SettingsFilePath
+        {
+            get
+            {
+                if (_resolvedSettingsPath != null) return _resolvedSettingsPath;
+                try
+                {
+                    var basePath = AppDomain.CurrentDomain.BaseDirectory;
+                    var testFile = Path.Combine(basePath, "write_test_settings.tmp");
+                    File.WriteAllText(testFile, "ok");
+                    File.Delete(testFile);
+                    _resolvedSettingsPath = Path.Combine(basePath, "app_settings.json");
+                }
+                catch
+                {
+                    var appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WPost");
+                    Directory.CreateDirectory(appDataDir);
+                    _resolvedSettingsPath = Path.Combine(appDataDir, "app_settings.json");
+                }
+                return _resolvedSettingsPath;
+            }
+        }
 
         public static AppSettings Load()
         {
