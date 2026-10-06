@@ -1,0 +1,97 @@
+﻿name: Release WPost Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag version (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine Version
+        id: get_version
+        shell: pwsh
+        run: |
+          $rawTag = "${{ github.event.inputs.tag_name }}"
+          if ([string]::IsNullOrWhiteSpace($rawTag)) {
+            $rawTag = "${{ github.ref_name }}"
+          }
+          if ([string]::IsNullOrWhiteSpace($rawTag)) {
+            $rawTag = "v1.0.0"
+          }
+          $cleanVersion = $rawTag.TrimStart('v')
+          echo "TAG=$rawTag" >> $env:GITHUB_OUTPUT
+          echo "VERSION=$cleanVersion" >> $env:GITHUB_OUTPUT
+          Write-Host "Target Tag: $rawTag, Version: $cleanVersion"
+
+      - name: Restore dependencies
+        run: dotnet restore seo-wb-desktop/WbTnvedManager.sln
+
+      - name: Run Tests
+        run: dotnet test seo-wb-desktop/WbTnvedManager.sln --no-restore -c Release
+
+      - name: Publish Single-File Executable
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.get_version.outputs.VERSION }}"
+          dotnet publish seo-wb-desktop/WbTnvedManager/WbTnvedManager.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:Version=$ver `
+            -o ./release_output
+
+          # Provide both WPost.exe and WbTnvedManager.exe names for convenience
+          if (Test-Path "./release_output/WPost.exe") {
+            Copy-Item "./release_output/WPost.exe" "./release_output/WbTnvedManager.exe"
+          }
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.TAG }}
+          name: Release ${{ steps.get_version.outputs.TAG }}
+          body: |
+            ## 🚀 WPost Desktop (${{ steps.get_version.outputs.TAG }}) - Wildberries TNVED & Bulk Fix Manager
+
+            ### 📥 Download Links:
+            - **Direct .exe download**: [WPost.exe](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.TAG }}/WPost.exe)
+            - **Direct latest link**: [WPost.exe (Latest)](https://github.com/${{ github.repository }}/releases/latest/download/WPost.exe)
+
+            ### 🌟 Key Highlights:
+            - Single-File Standalone Executable (No .NET installation required).
+            - Automatic TNVED Matrix mapping (Category + Gender + Material).
+            - Bulk Scan & Synchronized Fix with 100% data preservation.
+            - Rate Limiter anti-429 protection.
+          files: |
+            ./release_output/WPost.exe
+            ./release_output/WbTnvedManager.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
