@@ -14,9 +14,9 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <ApplicationTitle>WPost - Wildberries TNVED Matrix &amp; Bulk Fix Manager</ApplicationTitle>
-    <Version>1.0.4</Version>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
     <Company>WB SEO Automations</Company>
   </PropertyGroup>
 
