@@ -42,20 +42,33 @@ namespace WbTnvedManager.Services
             _repository = repository;
         }
 
-        public (string TnvedCode, string MatchReason) GetTnvedForAttributes(int subjectId, string gender, string material, string knitType = "")
+        public (string TnvedCode, string MatchReason) GetTnvedForAttributes(
+            int subjectId, 
+            string gender, 
+            string material, 
+            string knitType = "", 
+            string subjectName = "", 
+            string title = "", 
+            string fullTextContext = "")
         {
-            // 1. Exact Database Matrix Match
-            var match = _repository.FindBestMatch(subjectId, gender, material, knitType);
+            // 1. Exact Database Matrix Match (by SubjectId or SubjectName)
+            var match = _repository.FindBestMatch(subjectId, gender, material, knitType, subjectName);
             if (match != null && !string.IsNullOrWhiteSpace(match.TnvedCode))
             {
-                return (match.TnvedCode, $"Khớp chính xác quy tắc Ma trận: ID {match.Id} [{match.SubjectName}] ({match.Gender}, {match.Material})");
+                return (match.TnvedCode, $"Khớp chính xác quy tắc Ma trận: ID {match.SubjectId} [{match.SubjectName}] ({match.Gender}, {match.Material})");
             }
 
-            // 2. Advanced Heuristic Algorithm from backend FashionTnvedSelector
-            var textContext = $"{gender} {material} {knitType}";
-            var hint = BuildHint(subjectId, textContext, gender: gender, material: material);
-            var expectedPrefixes = GetExpectedPrefixes(hint);
+            // 2. Comprehensive Algorithmic Heuristics from backend FashionTnvedSelector
+            var combinedText = $"{subjectName} {title} {fullTextContext} {gender} {material} {knitType}";
+            var hint = BuildHint(subjectId, combinedText, subjectName: subjectName, gender: gender, material: material);
 
+            var directCode = ResolveDirectTnved(hint, knitType);
+            if (!string.IsNullOrEmpty(directCode))
+            {
+                return (directCode, $"Khớp quy tắc chuẩn ngành hàng '{hint.Family}' ({gender}, {material}, {hint.KnitState})");
+            }
+
+            var expectedPrefixes = GetExpectedPrefixes(hint);
             if (expectedPrefixes.Count > 0)
             {
                 var candidatePrefix = expectedPrefixes[0];
@@ -68,6 +81,224 @@ namespace WbTnvedManager.Services
             }
 
             return (string.Empty, "Không tìm thấy mã phù hợp trong Ma trận");
+        }
+
+        public string? ResolveDirectTnved(TnvedSelectionHint hint, string knitInput = "")
+        {
+            var family = hint.Family;
+            if (string.IsNullOrEmpty(family)) return null;
+
+            var aud = hint.Audience ?? "female";
+            bool isMaleSide = aud is "male" or "boys";
+            bool isFemaleSide = aud is "female" or "girls";
+            bool isBaby = aud is "baby";
+            var mat = hint.MaterialFamily ?? "cotton";
+            var knit = hint.KnitState ?? (knitInput.Contains("Ткань", StringComparison.OrdinalIgnoreCase) ? "woven" : "knit");
+
+            // Baby clothes (<86cm)
+            if (isBaby)
+            {
+                return mat == "synthetic" ? "6111309000" : "6111209000";
+            }
+
+            // 1. Pants / Trousers / Jeans / Shorts
+            if (family is "pants" or "jeans" or "shorts")
+            {
+                if (family == "shorts")
+                {
+                    if (knit == "knit")
+                    {
+                        if (isMaleSide) return mat == "synthetic" ? "6103430000" : "6103420000";
+                        return mat == "synthetic" ? "6104630000" : "6104620000";
+                    }
+                    if (isMaleSide) return mat == "synthetic" ? "6203439000" : "6203429000";
+                    return mat == "synthetic" ? "6204639000" : "6204629000";
+                }
+
+                if (knit == "knit")
+                {
+                    if (isMaleSide)
+                    {
+                        return mat switch
+                        {
+                            "wool" => "6103410000",
+                            "synthetic" => "6103430000",
+                            _ => "6103420000"
+                        };
+                    }
+                    else
+                    {
+                        return mat switch
+                        {
+                            "wool" => "6104610000",
+                            "synthetic" => "6104630000",
+                            _ => "6104620000"
+                        };
+                    }
+                }
+                else // Woven / Fabric / Denim
+                {
+                    if (isMaleSide)
+                    {
+                        return mat switch
+                        {
+                            "wool" => "6203411000",
+                            "synthetic" => "6203431900",
+                            _ => "6203423100"
+                        };
+                    }
+                    else
+                    {
+                        return mat switch
+                        {
+                            "wool" => "6204611000",
+                            "synthetic" => "6204631800",
+                            _ => "6204623100"
+                        };
+                    }
+                }
+            }
+
+            // 2. T-Shirts / Tops / Bodysuits / Longsleeves
+            if (family is "tshirt" or "top")
+            {
+                return mat switch
+                {
+                    "synthetic" => "6109902000",
+                    "wool" => "6109909000",
+                    _ => "6109100000"
+                };
+            }
+
+            // 3. Hoodies / Sweatshirts / Jumpers / Cardigans
+            if (family is "hoodie" or "sweater")
+            {
+                if (mat == "wool") return "6110113000";
+                if (mat == "synthetic") return isMaleSide ? "6110309100" : "6110309900";
+                return isMaleSide ? "6110209100" : "6110209900";
+            }
+
+            // 4. Dresses / Sundresses
+            if (family == "dress")
+            {
+                if (knit == "knit")
+                {
+                    return mat switch
+                    {
+                        "synthetic" => "6104430000",
+                        "wool" => "6104410000",
+                        _ => "6104420000"
+                    };
+                }
+                else
+                {
+                    return mat switch
+                    {
+                        "synthetic" => "6204430000",
+                        "wool" => "6204410000",
+                        "silk" => "6204491000",
+                        _ => "6204420000"
+                    };
+                }
+            }
+
+            // 5. Skirts
+            if (family == "skirt")
+            {
+                if (knit == "knit") return mat == "synthetic" ? "6104530000" : "6104520000";
+                return mat switch
+                {
+                    "synthetic" => "6204530000",
+                    "wool" => "6204510000",
+                    _ => "6204520000"
+                };
+            }
+
+            // 6. Shirts / Blouses
+            if (family is "shirt" or "blouse")
+            {
+                if (isMaleSide)
+                {
+                    if (knit == "knit") return "6105100000";
+                    return mat switch
+                    {
+                        "synthetic" => "6205300000",
+                        "flax" => "6205908000",
+                        _ => "6205200000"
+                    };
+                }
+                else
+                {
+                    if (knit == "knit") return "6106100000";
+                    return mat switch
+                    {
+                        "synthetic" => "6206400000",
+                        "silk" => "6206100000",
+                        _ => "6206300000"
+                    };
+                }
+            }
+
+            // 7. Outerwear / Jackets / Coats
+            if (family is "jacket" or "coat")
+            {
+                if (mat == "leather") return "4203100001";
+                if (family == "coat")
+                {
+                    return isMaleSide ? "6201110000" : "6202110000";
+                }
+                if (isMaleSide) return mat == "cotton" ? "6201300000" : "6201400000";
+                return mat == "cotton" ? "6202300000" : "6202400000";
+            }
+
+            // 8. Suits / Sets / Tracksuits
+            if (family is "suit" or "set")
+            {
+                if (knit == "knit") return isMaleSide ? "6103100000" : "6104190000";
+                return isMaleSide ? "6203228000" : "6204228000";
+            }
+
+            // 9. Socks / Hosiery
+            if (family is "socks" or "hosiery")
+            {
+                if (mat == "synthetic") return "6115969900";
+                return "6115950000";
+            }
+
+            // 10. Underwear
+            if (family == "underwear")
+            {
+                if (isMaleSide) return mat == "synthetic" ? "6107120000" : "6107110000";
+                return mat == "synthetic" ? "6108220000" : "6108210000";
+            }
+
+            // 11. Sleepwear
+            if (family == "sleepwear")
+            {
+                if (isMaleSide) return "6107210000";
+                return mat == "synthetic" ? "6108320000" : "6108310000";
+            }
+
+            // 12. Shoes
+            if (family == "shoes")
+            {
+                if (mat == "leather") return isMaleSide ? "6403999600" : "6403999800";
+                return "6404110000";
+            }
+
+            // 13. Headwear
+            if (family == "hats")
+            {
+                return knit == "knit" ? "6505009000" : "6505003000";
+            }
+
+            // 14. Accessories / Bags
+            if (family is "bags" or "accessories")
+            {
+                return "4202220000";
+            }
+
+            return null;
         }
 
         public TnvedSelectionHint BuildHint(
@@ -170,26 +401,67 @@ namespace WbTnvedManager.Services
         public string? InferFamily(string value)
         {
             var text = Normalize(value);
-            if (text.Contains("джинс") || text.Contains("jeans") || text.Contains("denim")) return "jeans";
-            if (text.Contains("брюк") || text.Contains("брюки") || text.Contains("trousers") || text.Contains("pants")) return "pants";
-            if (text.Contains("шорт") || text.Contains("shorts")) return "shorts";
+            // Jeans
+            if (text.Contains("джинс") || text.Contains("jeans") || text.Contains("denim") || text.Contains("деним")) return "jeans";
+            // Shorts
+            if (text.Contains("шорт") || text.Contains("shorts") || text.Contains("бермуд") || text.Contains("бридж") || text.Contains("велосипедк") || text.Contains("капри")) return "shorts";
+            // Pants & Sweatpants & Joggers & Leggings
+            if (text.Contains("брюк") || text.Contains("штаны") || text.Contains("trousers") || text.Contains("pants") || 
+                text.Contains("джоггер") || text.Contains("леггинс") || text.Contains("тайтс") || text.Contains("чинос") || 
+                text.Contains("банан") || text.Contains("слакс") || text.Contains("палаццо") || text.Contains("карго") || 
+                text.Contains("треник") || text.Contains("лосин")) return "pants";
+            // Skirts
             if (text.Contains("юбк") || text.Contains("skirt")) return "skirt";
-            if (text.Contains("плать") || text.Contains("dress")) return "dress";
+            // Dresses
+            if (text.Contains("плать") || text.Contains("dress") || text.Contains("сарафан") || text.Contains("туник")) return "dress";
+            // Blouses & Shirts
             if (text.Contains("блуз") || text.Contains("blouse")) return "blouse";
             if (text.Contains("рубаш") || text.Contains("shirt") || text.Contains("сорочк")) return "shirt";
-            if (text.Contains("куртк") || text.Contains("жакет") || text.Contains("jacket")) return "jacket";
-            if (text.Contains("пальт") || text.Contains("coat")) return "coat";
-            if (text.Contains("футболк") || text.Contains("t-shirt") || text.Contains("tshirt") || text.Contains("майк")) return "tshirt";
+            // Outerwear & Jackets
+            if (text.Contains("пальт") || text.Contains("coat") || text.Contains("плащ") || text.Contains("шуб") || text.Contains("дубленк")) return "coat";
+            if (text.Contains("куртк") || text.Contains("ветровк") || text.Contains("пуховик") || text.Contains("бомбер") || 
+                text.Contains("анорак") || text.Contains("парк") || text.Contains("жакет") || text.Contains("jacket") || text.Contains("жилет")) return "jacket";
+            // Hoodies & Sweatshirts
+            if (text.Contains("худи") || text.Contains("толстовк") || text.Contains("свитшот") || text.Contains("олимпийк") || text.Contains("зип")) return "hoodie";
+            // Knitwear & Sweaters & Jumpers
+            if (text.Contains("свитер") || text.Contains("джемпер") || text.Contains("водолазк") || text.Contains("кардиган") || 
+                text.Contains("пуловер") || text.Contains("кофт") || text.Contains("sweater")) return "sweater";
+            // T-shirts & Tops
+            if (text.Contains("футболк") || text.Contains("t-shirt") || text.Contains("tshirt") || text.Contains("майк") || 
+                text.Contains("топ") || text.Contains("боди") || text.Contains("лонгслив") || text.Contains("поло") || text.Contains("тельняшк")) return "tshirt";
+            // Suits & Sets & Tracksuits
+            if (text.Contains("костюм") || text.Contains("комплект") || text.Contains("комбинезон") || text.Contains("tracksuit")) return "suit";
+            // Socks & Hosiery
+            if (text.Contains("носк") || text.Contains("колготк") || text.Contains("гольф") || text.Contains("следк") || text.Contains("чулк") || text.Contains("гетр")) return "socks";
+            // Underwear
+            if (text.Contains("трус") || text.Contains("боксер") || text.Contains("бюстгальтер") || text.Contains("лиф") || text.Contains("плавк") || text.Contains("кальсон") || text.Contains("термобель")) return "underwear";
+            // Sleepwear
+            if (text.Contains("пижам") || text.Contains("халат") || text.Contains("пеньюар") || text.Contains("кигуруми")) return "sleepwear";
+            // Shoes
+            if (text.Contains("кроссовк") || text.Contains("кед") || text.Contains("ботинк") || text.Contains("ботинок") || 
+                text.Contains("сапог") || text.Contains("туфл") || text.Contains("сандал") || text.Contains("шлепанц") || 
+                text.Contains("тапочк") || text.Contains("мокасин") || text.Contains("лофер") || text.Contains("балетк") || 
+                text.Contains("угг") || text.Contains("слипон")) return "shoes";
+            // Headwear
+            if (text.Contains("шапк") || text.Contains("кепк") || text.Contains("бейсболк") || text.Contains("панам") || 
+                text.Contains("балаклав") || text.Contains("берет") || text.Contains("ушанк") || text.Contains("повязк")) return "hats";
+            // Bags & Accessories
+            if (text.Contains("сумк") || text.Contains("рюкзак") || text.Contains("ремень") || text.Contains("кошелек") || 
+                text.Contains("перчатк") || text.Contains("варежк") || text.Contains("шарф") || text.Contains("платок") || text.Contains("галстук")) return "bags";
+            // Baby
+            if (text.Contains("песочник") || text.Contains("ползунк") || text.Contains("распашонк") || text.Contains("слип")) return "baby";
+
             return null;
         }
 
         public string? InferAudience(string value)
         {
             var text = Normalize(value);
+            if (text.Contains("малыш") || text.Contains("новорожден")) return "baby";
             if (text.Contains("девоч") || text.Contains("girls")) return "girls";
             if (text.Contains("мальч") || text.Contains("boys")) return "boys";
-            if (text.Contains("женск") || text.Contains("жен") || text.Contains("women") || text.Contains("female")) return "female";
-            if (text.Contains("мужск") || text.Contains("men") || text.Contains("male") || text.Contains("муж")) return "male";
+            if (text.Contains("женск") || text.Contains("жен") || text.Contains("women") || text.Contains("female") || text.Contains("девушк")) return "female";
+            if (text.Contains("мужск") || text.Contains("men") || text.Contains("male") || text.Contains("муж") || text.Contains("парн")) return "male";
             if (text.Contains("unisex") || text.Contains("унисекс")) return "unisex";
             return null;
         }
@@ -221,8 +493,17 @@ namespace WbTnvedManager.Services
         public string? InferKnitState(string value, string? family = null)
         {
             var text = Normalize(value);
-            if (text.Contains("трикот") || text.Contains("вязан") || text.Contains("jersey") || text.Contains("knit") || text.Contains("футер")) return "knit";
-            if (text.Contains("деним") || text.Contains("джинс") || text.Contains("лен") || text.Contains("linen") || text.Contains("woven") || text.Contains("ткан") || text.Contains("костюм")) return "woven";
+            if (text.Contains("трикот") || text.Contains("вязан") || text.Contains("jersey") || text.Contains("knit") || 
+                text.Contains("футер") || text.Contains("спортивн") || text.Contains("джоггер") || text.Contains("худи") || 
+                text.Contains("свитшот") || text.Contains("толстовк") || text.Contains("свитер") || text.Contains("джемпер") || 
+                text.Contains("водолазк") || text.Contains("кардиган") || text.Contains("футболк") || text.Contains("майк") || 
+                text.Contains("топ") || text.Contains("лонгслив") || text.Contains("боди") || text.Contains("носк") || 
+                text.Contains("колготк") || text.Contains("трус")) return "knit";
+
+            if (text.Contains("деним") || text.Contains("джинс") || text.Contains("лен") || text.Contains("linen") || 
+                text.Contains("woven") || text.Contains("ткан") || text.Contains("костюм") || text.Contains("кожа") || 
+                text.Contains("пальто") || text.Contains("куртка") || text.Contains("рубашка") || text.Contains("блузка")) return "woven";
+
             if (family is "pants" or "jeans" or "shorts" or "skirt" or "dress" or "shirt" or "blouse" or "jacket" or "coat") return "woven";
             return "knit";
         }
@@ -236,12 +517,12 @@ namespace WbTnvedManager.Services
         public string? InferMaterialFamily(string value)
         {
             var text = Normalize(value);
-            if (text.Contains("хлоп") || text.Contains("cotton") || text.Contains("деним") || text.Contains("джинс")) return "cotton";
-            if (text.Contains("полиэстер") || text.Contains("синтет") || text.Contains("synthetic") || text.Contains("polyester") || text.Contains("viscose") || text.Contains("вискоз")) return "synthetic";
-            if (text.Contains("шерст") || text.Contains("wool") || text.Contains("кашемир")) return "wool";
+            if (text.Contains("хлоп") || text.Contains("cotton") || text.Contains("деним") || text.Contains("джинс") || text.Contains("футер")) return "cotton";
+            if (text.Contains("полиэстер") || text.Contains("синтет") || text.Contains("synthetic") || text.Contains("polyester") || text.Contains("viscose") || text.Contains("вискоз") || text.Contains("эластан") || text.Contains("нейлон") || text.Contains("лайкра")) return "synthetic";
+            if (text.Contains("шерст") || text.Contains("wool") || text.Contains("кашемир") || text.Contains("мохер") || text.Contains("альпака")) return "wool";
             if (text.Contains("лен") || text.Contains("linen") || text.Contains("flax")) return "flax";
             if (text.Contains("шелк") || text.Contains("silk")) return "silk";
-            if (text.Contains("кожа") || text.Contains("leather")) return "leather";
+            if (text.Contains("кожа") || text.Contains("leather") || text.Contains("замш")) return "leather";
             return null;
         }
 
@@ -253,7 +534,7 @@ namespace WbTnvedManager.Services
                 "cotton" => "Хлопок",
                 "synthetic" => "Синтетика",
                 "wool" => "Шерсть",
-                "flax" => "Лen",
+                "flax" => "Лен",
                 "silk" => "Шелк",
                 "leather" => "Кожа",
                 _ => "Хлопок"

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using WbTnvedManager.Models;
@@ -55,34 +55,66 @@ namespace WbTnvedManager.Data
             return list;
         }
 
-        public TnvedMatrixEntry? FindBestMatch(int subjectId, string gender, string material, string knitType = "")
+        public TnvedMatrixEntry? FindBestMatch(int subjectId, string gender, string material, string knitType = "", string subjectName = "")
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                SELECT Id, SubjectId, SubjectName, Gender, Material, KnitType, TnvedCode, Description, UpdatedAt 
-                FROM TnvedMatrix 
-                WHERE SubjectId = @subjectId 
-                  AND (Gender = @gender OR Gender = 'Унисекс' OR @gender = '' OR @gender = 'Унисекс')
-                  AND (Material LIKE @material OR @material = '' OR @material LIKE Material)
-                ORDER BY 
-                  CASE WHEN Gender = @gender THEN 1 ELSE 2 END,
-                  CASE WHEN Material = @material THEN 1 ELSE 2 END,
-                  CASE WHEN KnitType = @knitType THEN 1 ELSE 2 END
-                LIMIT 1";
-
-            cmd.Parameters.AddWithValue("@subjectId", subjectId);
-            cmd.Parameters.AddWithValue("@gender", gender ?? string.Empty);
-            cmd.Parameters.AddWithValue("@material", string.IsNullOrEmpty(material) ? "" : $"%{material}%");
-            cmd.Parameters.AddWithValue("@knitType", knitType ?? string.Empty);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            // 1. Match by SubjectId
+            if (subjectId > 0)
             {
-                return ReadEntry(reader);
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT Id, SubjectId, SubjectName, Gender, Material, KnitType, TnvedCode, Description, UpdatedAt 
+                    FROM TnvedMatrix 
+                    WHERE SubjectId = @subjectId 
+                      AND (Gender = @gender OR Gender = 'Унисекс' OR @gender = '' OR @gender = 'Унисекс')
+                      AND (Material LIKE @material OR @material = '' OR @material LIKE Material)
+                    ORDER BY 
+                      CASE WHEN Gender = @gender THEN 1 ELSE 2 END,
+                      CASE WHEN Material = @material THEN 1 ELSE 2 END,
+                      CASE WHEN KnitType = @knitType THEN 1 ELSE 2 END
+                    LIMIT 1";
+
+                cmd.Parameters.AddWithValue("@subjectId", subjectId);
+                cmd.Parameters.AddWithValue("@gender", gender ?? string.Empty);
+                cmd.Parameters.AddWithValue("@material", string.IsNullOrEmpty(material) ? "" : $"%{material}%");
+                cmd.Parameters.AddWithValue("@knitType", knitType ?? string.Empty);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return ReadEntry(reader);
+                }
             }
+
+            // 2. Fallback: Match by SubjectName if SubjectId is different
+            if (!string.IsNullOrWhiteSpace(subjectName))
+            {
+                var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT Id, SubjectId, SubjectName, Gender, Material, KnitType, TnvedCode, Description, UpdatedAt 
+                    FROM TnvedMatrix 
+                    WHERE (@subjName LIKE '%' || SubjectName || '%' OR SubjectName LIKE '%' || @subjName || '%')
+                      AND (Gender = @gender OR Gender = 'Унисекс' OR @gender = '' OR @gender = 'Унисекс')
+                    ORDER BY 
+                      CASE WHEN Gender = @gender THEN 1 ELSE 2 END,
+                      CASE WHEN Material = @material THEN 1 ELSE 2 END,
+                      CASE WHEN KnitType = @knitType THEN 1 ELSE 2 END
+                    LIMIT 1";
+
+                cmd.Parameters.AddWithValue("@subjName", subjectName.Trim());
+                cmd.Parameters.AddWithValue("@gender", gender ?? string.Empty);
+                cmd.Parameters.AddWithValue("@material", string.IsNullOrEmpty(material) ? "" : $"%{material}%");
+                cmd.Parameters.AddWithValue("@knitType", knitType ?? string.Empty);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return ReadEntry(reader);
+                }
+            }
+
             return null;
         }
 

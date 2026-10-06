@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using WbTnvedManager.Models;
 
@@ -32,7 +32,10 @@ namespace WbTnvedManager.Services
                     card.SubjectId, 
                     detectedGender, 
                     detectedMaterial, 
-                    detectedKnit
+                    detectedKnit,
+                    subjectName: card.SubjectName,
+                    title: card.Title,
+                    fullTextContext: textContext
                 );
 
                 var item = new AuditResultItem

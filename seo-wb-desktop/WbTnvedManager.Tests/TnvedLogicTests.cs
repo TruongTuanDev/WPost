@@ -156,6 +156,36 @@ namespace WbTnvedManager.Tests
         }
 
         [Fact]
+        public void AuditCards_SportPants_ShouldResolveCorrectTnved()
+        {
+            var auditService = new CardAuditService(_selector);
+
+            var sampleCards = new List<WbCardItem>
+            {
+                new()
+                {
+                    NmId = 100004,
+                    VendorCode = "quần nike 6832 den",
+                    SubjectId = 10099, // Unseed ID but subjectName matches
+                    SubjectName = "Брюки спортивные",
+                    Title = "Брюки спортивные мужские оверсайз хлопок",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" },
+                        new() { Id = 10, Name = "Состав", Value = "Хлопок" }
+                    }
+                }
+            };
+
+            var auditResults = auditService.AuditCards(sampleCards);
+
+            Assert.Single(auditResults);
+            Assert.Equal("6103420000", auditResults[0].SuggestedTnved);
+            Assert.True(auditResults[0].CanFix);
+            Assert.NotEqual(AuditStatus.NoMatrixMatch, auditResults[0].Status);
+        }
+
+        [Fact]
         public void PrepareUpdatedCard_MustPreserveOriginalDataAndOnlyUpdateTnvedAndGender()
         {
             var original = new WbCardItem
