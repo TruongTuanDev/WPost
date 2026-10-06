@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -77,11 +77,11 @@ namespace WbTnvedManager.ViewModels
             set => SetProperty(ref _progressPercent, value);
         }
 
-        public int TotalCardsCount { get => _totalCardsCount; private set => SetProperty(ref _totalCardsCount, value); }
-        public int MatchedOkCount { get => _matchedOkCount; private set => SetProperty(ref _matchedOkCount, value); }
-        public int NeedsFixCount { get => _needsFixCount; private set => SetProperty(ref _needsFixCount, value); }
-        public int NoMatrixCount { get => _noMatrixCount; private set => SetProperty(ref _noMatrixCount, value); }
-        public int SelectedCount { get => _selectedCount; private set => SetProperty(ref _selectedCount, value); }
+        public int TotalCardsCount { get => _totalCardsCount; set => SetProperty(ref _totalCardsCount, value); }
+        public int MatchedOkCount { get => _matchedOkCount; set => SetProperty(ref _matchedOkCount, value); }
+        public int NeedsFixCount { get => _needsFixCount; set => SetProperty(ref _needsFixCount, value); }
+        public int NoMatrixCount { get => _noMatrixCount; set => SetProperty(ref _noMatrixCount, value); }
+        public int SelectedCount { get => _selectedCount; set => SetProperty(ref _selectedCount, value); }
 
         public ICommand ScanCardsCommand { get; }
         public ICommand BulkFixCommand { get; }

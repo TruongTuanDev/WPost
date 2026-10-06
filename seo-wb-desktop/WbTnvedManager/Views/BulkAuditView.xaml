@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="WbTnvedManager.Views.BulkAuditView"
+<UserControl x:Class="WbTnvedManager.Views.BulkAuditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -56,25 +56,25 @@
                 <Border Background="#F1F5F9" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
                     <TextBlock>
                         <Run Text="Tổng cộng: " Foreground="#64748B"/>
-                        <Run Text="{Binding TotalCardsCount}" FontWeight="Bold" Foreground="#0F172A"/>
+                        <Run Text="{Binding TotalCardsCount, Mode=OneWay}" FontWeight="Bold" Foreground="#0F172A"/>
                     </TextBlock>
                 </Border>
                 <Border Background="#DCFCE7" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
                     <TextBlock>
                         <Run Text="✅ Đạt chuẩn: " Foreground="#166534"/>
-                        <Run Text="{Binding MatchedOkCount}" FontWeight="Bold" Foreground="#166534"/>
+                        <Run Text="{Binding MatchedOkCount, Mode=OneWay}" FontWeight="Bold" Foreground="#166534"/>
                     </TextBlock>
                 </Border>
                 <Border Background="#FEE2E2" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
                     <TextBlock>
                         <Run Text="❌ Cần sửa: " Foreground="#991B1B"/>
-                        <Run Text="{Binding NeedsFixCount}" FontWeight="Bold" Foreground="#991B1B"/>
+                        <Run Text="{Binding NeedsFixCount, Mode=OneWay}" FontWeight="Bold" Foreground="#991B1B"/>
                     </TextBlock>
                 </Border>
                 <Border Background="#FEF3C7" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
                     <TextBlock>
                         <Run Text="Đã chọn sửa: " Foreground="#92400E"/>
-                        <Run Text="{Binding SelectedCount}" FontWeight="Bold" Foreground="#92400E"/>
+                        <Run Text="{Binding SelectedCount, Mode=OneWay}" FontWeight="Bold" Foreground="#92400E"/>
                     </TextBlock>
                 </Border>
             </StackPanel>
