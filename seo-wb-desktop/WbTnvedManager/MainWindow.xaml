@@ -7,6 +7,7 @@
         xmlns:views="clr-namespace:WbTnvedManager.Views"
         mc:Ignorable="d"
         Title="WPost - Wildberries TNVED Matrix &amp; Bulk Fix Manager (.NET 8)"
+        Icon="app.ico"
         Height="860" Width="1340"
         MinHeight="680" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
