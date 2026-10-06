@@ -84,6 +84,7 @@ namespace WbTnvedManager.ViewModels
         public int SelectedCount { get => _selectedCount; set => SetProperty(ref _selectedCount, value); }
 
         public ICommand ScanCardsCommand { get; }
+        public ICommand LoadSampleCardsCommand { get; }
         public ICommand BulkFixCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand SelectAllCommand { get; }
@@ -102,11 +103,123 @@ namespace WbTnvedManager.ViewModels
             _errorTracker = errorTracker;
 
             ScanCardsCommand = new RelayCommand(async () => await ScanAndAuditAsync(), () => !IsBusy);
+            LoadSampleCardsCommand = new RelayCommand(LoadSampleCards, () => !IsBusy);
             BulkFixCommand = new RelayCommand(async () => await ExecuteBulkFixAsync(), () => !IsBusy && _allAuditResults.Any(r => r.IsSelected && r.CanFix));
             CancelCommand = new RelayCommand(CancelOperation, () => IsBusy);
             SelectAllCommand = new RelayCommand(SelectAll);
             DeselectAllCommand = new RelayCommand(DeselectAll);
             CheckErrorsCommand = new RelayCommand(async () => await LoadErrorsAsync(), () => !IsBusy);
+
+            // Auto-load sample cards on startup so UI is never blank
+            LoadSampleCards();
+        }
+
+        public void LoadSampleCards()
+        {
+            var sampleCards = new List<WbCardItem>
+            {
+                new()
+                {
+                    NmId = 184920192,
+                    SubjectId = 105,
+                    SubjectName = "Футболка",
+                    VendorCode = "TSHIRT-FEMALE-01",
+                    Title = "Футболка женская базовая оверсайз хлопок",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6403999600" }, // SAI: Gán mã giày dép
+                        new() { Id = 8, Name = "Пол", Value = "Женский" },
+                        new() { Id = 10, Name = "Состав", Value = "100% хлопок" }
+                    }
+                },
+                new()
+                {
+                    NmId = 209148201,
+                    SubjectId = 273,
+                    SubjectName = "Джинсы",
+                    VendorCode = "JEANS-MALE-BLACK",
+                    Title = "Джинсы мужские классические плотные деним",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6204623100" }, // SAI: Gán mã quần nữ thay vì nam (6203423100)
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" },
+                        new() { Id = 10, Name = "Состав", Value = "Хлопок 98%, эластан 2%" }
+                    }
+                },
+                new()
+                {
+                    NmId = 195827103,
+                    SubjectId = 156,
+                    SubjectName = "Платье",
+                    VendorCode = "DRESS-SILK-SUMMER",
+                    Title = "Платье летнее женское шелковое вечернее",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "0000000000" }, // SAI: Mã rác
+                        new() { Id = 10, Name = "Состав", Value = "Шелк" }
+                    }
+                },
+                new()
+                {
+                    NmId = 174920583,
+                    SubjectId = 248,
+                    SubjectName = "Худи",
+                    VendorCode = "HOODIE-UNISEX-COTTON",
+                    Title = "Худи оверсайз с начесом унисекс",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6110209900" }, // CHUẨN
+                        new() { Id = 8, Name = "Пол", Value = "Унисекс" },
+                        new() { Id = 10, Name = "Состав", Value = "Хлопок 80%, полиэстер 20%" }
+                    }
+                },
+                new()
+                {
+                    NmId = 239105829,
+                    SubjectId = 138,
+                    SubjectName = "Рубашка",
+                    VendorCode = "SHIRT-MEN-WHITE",
+                    Title = "Рубашка мужская классическая белая",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6206300000" }, // SAI: Mã áo blouse nữ
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" },
+                        new() { Id = 10, Name = "Состав", Value = "Хлопок" }
+                    }
+                },
+                new()
+                {
+                    NmId = 284019284,
+                    SubjectId = 217,
+                    SubjectName = "Куртка",
+                    VendorCode = "JACKET-LEATHER-MEN",
+                    Title = "Куртка мужская кожаная демисезонная",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6201400000" }, // SAI: Gán mã vải tổng hợp thay vì mã da 4203100001
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" },
+                        new() { Id = 10, Name = "Состав", Value = "Натуральная кожа" }
+                    }
+                }
+            };
+
+            _allAuditResults = _auditService.AuditCards(sampleCards);
+
+            foreach (var r in _allAuditResults)
+            {
+                r.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(AuditResultItem.IsSelected))
+                    {
+                        UpdateCounts();
+                        (BulkFixCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    }
+                };
+            }
+
+            ApplyFilter();
+            UpdateCounts();
+            StatusMessage = $"Đã nạp {_allAuditResults.Count} thẻ sản phẩm mẫu. {NeedsFixCount} thẻ phát hiện sai mã cần sửa.";
         }
 
         public async Task ScanAndAuditAsync()

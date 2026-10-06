@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
@@ -62,7 +62,7 @@ namespace WbTnvedManager.Data
             countCmd.CommandText = "SELECT COUNT(*) FROM TnvedMatrix";
             long count = (long)(countCmd.ExecuteScalar() ?? 0);
 
-            if (count == 0)
+            if (count < 20)
             {
                 SeedDefaultMatrix(connection);
             }
@@ -74,7 +74,7 @@ namespace WbTnvedManager.Data
             var insertCmd = connection.CreateCommand();
             insertCmd.Transaction = transaction;
             insertCmd.CommandText = @"
-                INSERT INTO TnvedMatrix (SubjectId, SubjectName, Gender, Material, KnitType, TnvedCode, Description)
+                INSERT OR REPLACE INTO TnvedMatrix (SubjectId, SubjectName, Gender, Material, KnitType, TnvedCode, Description)
                 VALUES (@subjectId, @subjectName, @gender, @material, @knitType, @tnvedCode, @description)
             ";
 
@@ -162,6 +162,12 @@ namespace WbTnvedManager.Data
                 new() { SubjectId = 248, SubjectName = "Худи", Gender = "Мужской", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6110309100", Description = "Худи мужские трикотажные из хим волокон" },
                 new() { SubjectId = 248, SubjectName = "Худи", Gender = "Женский", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6110309900", Description = "Худи женские трикотажные из хим волокон" },
 
+                // Свитер / Джемпер (Sweaters) - SubjectID 247
+                new() { SubjectId = 247, SubjectName = "Джемпер", Gender = "Мужской", Material = "Шерсть", KnitType = "Трикотаж", TnvedCode = "6110113000", Description = "Джемперы мужские шерстяные трикотажные" },
+                new() { SubjectId = 247, SubjectName = "Джемпер", Gender = "Женский", Material = "Шерсть", KnitType = "Трикотаж", TnvedCode = "6110113000", Description = "Джемперы женские шерстяные трикотажные" },
+                new() { SubjectId = 247, SubjectName = "Джемпер", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6110209100", Description = "Джемперы мужские хлопчатобумажные" },
+                new() { SubjectId = 247, SubjectName = "Джемпер", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6110209900", Description = "Джемперы женские хлопчатобумажные" },
+
                 // Куртки (Jackets) - SubjectID 217
                 new() { SubjectId = 217, SubjectName = "Куртка", Gender = "Мужской", Material = "Синтетика", KnitType = "Ткань", TnvedCode = "6201400000", Description = "Куртки мужские из химических волокон" },
                 new() { SubjectId = 217, SubjectName = "Куртка", Gender = "Женский", Material = "Синтетика", KnitType = "Ткань", TnvedCode = "6202400000", Description = "Куртки женские из химических волокон" },
@@ -178,14 +184,24 @@ namespace WbTnvedManager.Data
 
                 // Носки (Socks) - SubjectID 197
                 new() { SubjectId = 197, SubjectName = "Носки", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6115950000", Description = "Носки мужские из хлопчатобумажной пряжи" },
-                new() { SubjectId = 197, SubjectName = "Носки", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6115950000", Description = "Носки женские из хлопчатобумажной пряжи" },
+                new() { SubjectId = 197, SubjectName = "Носки", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6115950000", Description = "Носки женские из хлопчатоbuмажной пряжи" },
                 new() { SubjectId = 197, SubjectName = "Носки", Gender = "Унисекс", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6115950000", Description = "Носки унисекс хлопковые" },
+
+                // Нижнее белье / Трусы (Underwear) - SubjectID 189
+                new() { SubjectId = 189, SubjectName = "Трусы", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6107110000", Description = "Трусы мужские трикотажные хлопчатобумажные" },
+                new() { SubjectId = 189, SubjectName = "Трусы", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6108210000", Description = "Трусы женские трикотажные хлопчатобумажные" },
+                new() { SubjectId = 189, SubjectName = "Трусы", Gender = "Женский", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6108220000", Description = "Трусы женские из синтетических нитей" },
 
                 // Обувь / Кроссовки (Shoes / Sneakers) - SubjectID 315
                 new() { SubjectId = 315, SubjectName = "Кроссовки", Gender = "Мужской", Material = "Кожа", KnitType = "Ткань", TnvedCode = "6403999600", Description = "Обувь мужская с верхом из кожи" },
                 new() { SubjectId = 315, SubjectName = "Кроссовки", Gender = "Женский", Material = "Кожа", KnitType = "Ткань", TnvedCode = "6403999800", Description = "Обувь женская с верхом из кожи" },
                 new() { SubjectId = 315, SubjectName = "Кроссовки", Gender = "Мужской", Material = "Текстиль", KnitType = "Ткань", TnvedCode = "6404110000", Description = "Спортивная обувь мужская с текстильным верхом" },
-                new() { SubjectId = 315, SubjectName = "Кроссовки", Gender = "Женский", Material = "Текстиль", KnitType = "Ткань", TnvedCode = "6404110000", Description = "Спортивная обувь женская с текстильным верхом" }
+                new() { SubjectId = 315, SubjectName = "Кроссовки", Gender = "Женский", Material = "Текстиль", KnitType = "Ткань", TnvedCode = "6404110000", Description = "Спортивная обувь женская с текстильным верхом" },
+
+                // Головные уборы / Шапки (Caps / Hats) - SubjectID 211
+                new() { SubjectId = 211, SubjectName = "Шапка", Gender = "Унисекс", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6505009000", Description = "Шапки трикотажные хлопковые" },
+                new() { SubjectId = 211, SubjectName = "Шапка", Gender = "Унисекс", Material = "Шерсть", KnitType = "Трикотаж", TnvedCode = "6505009000", Description = "Шапки трикотажные шерстяные" },
+                new() { SubjectId = 211, SubjectName = "Кепка", Gender = "Мужской", Material = "Хлопок", KnitType = "Ткань", TnvedCode = "6505003000", Description = "Кепки и бейсболки хлопчатобумажные" }
             };
         }
     }
