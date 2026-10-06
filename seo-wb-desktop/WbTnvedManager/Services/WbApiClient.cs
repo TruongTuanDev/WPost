@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -291,6 +291,121 @@ namespace WbTnvedManager.Services
                 // Return collected items
             }
             return items;
+        }
+
+        public async Task<List<string>> GenerateBarcodesAsync(int count = 1, CancellationToken cancellationToken = default)
+        {
+            var barcodes = new List<string>();
+            try
+            {
+                var payload = new { count = Math.Max(1, count) };
+                var request = CreateRequest(HttpMethod.Post, $"{_baseUrl}/content/v2/barcodes", payload);
+                var response = await SendWithRetryAsync(request, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+                    using var doc = JsonDocument.Parse(jsonString);
+                    if (doc.RootElement.TryGetProperty("data", out var dataElem) && dataElem.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var elem in dataElem.EnumerateArray())
+                        {
+                            var code = elem.GetString();
+                            if (!string.IsNullOrWhiteSpace(code))
+                            {
+                                barcodes.Add(code);
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Return whatever collected or empty
+            }
+            return barcodes;
+        }
+
+        public async Task<(bool Success, string Message, string RawResponse)> UploadCardsAsync(object cardUploadPayload, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var request = CreateRequest(HttpMethod.Post, $"{_baseUrl}/content/v2/cards/upload", cardUploadPayload);
+                var response = await SendWithRetryAsync(request, cancellationToken);
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Tạo thẻ sản phẩm lên Wildberries thành công!", content);
+                }
+                else
+                {
+                    return (false, $"WB từ chối (HTTP {(int)response.StatusCode}): {content}", content);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi kết nối khi đăng bài: {ex.Message}", string.Empty);
+            }
+        }
+
+        public async Task<(bool Success, string Message)> UploadMediaFileAsync(long nmId, int photoNumber, string fileName, byte[] content, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/content/v3/media/file");
+                if (!string.IsNullOrWhiteSpace(_apiKey))
+                {
+                    request.Headers.TryAddWithoutValidation("Authorization", _apiKey);
+                }
+                request.Headers.TryAddWithoutValidation("X-Nm-Id", nmId.ToString());
+                request.Headers.TryAddWithoutValidation("X-Photo-Number", photoNumber.ToString());
+
+                var multipartContent = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(content);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                multipartContent.Add(fileContent, "uploadfile", fileName);
+                request.Content = multipartContent;
+
+                var response = await SendWithRetryAsync(request, cancellationToken);
+                var responseText = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, $"Upload ảnh #{photoNumber} thành công.");
+                }
+                else
+                {
+                    return (false, $"Lỗi upload ảnh #{photoNumber} (HTTP {(int)response.StatusCode}): {responseText}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi kết nối khi upload ảnh: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> UploadMediaLinksAsync(long nmId, List<string> links, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var payload = new { nmId = nmId, data = links };
+                var request = CreateRequest(HttpMethod.Post, $"{_baseUrl}/content/v3/media/save", payload);
+                var response = await SendWithRetryAsync(request, cancellationToken);
+                var responseText = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, $"Cập nhật {links.Count} link ảnh cho NM ID {nmId} thành công.");
+                }
+                else
+                {
+                    return (false, $"Lỗi lưu link ảnh (HTTP {(int)response.StatusCode}): {responseText}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi kết nối lưu link ảnh: {ex.Message}");
+            }
         }
 
         private HttpRequestMessage CreateRequest(HttpMethod method, string url, object? body = null)

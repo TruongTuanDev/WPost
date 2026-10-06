@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -268,34 +268,102 @@ namespace WbTnvedManager.Services
             return string.Join(" ", norm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
         }
 
-        public object BuildUploadByItemPayload(int subjectId, string vendorCode, string title, string description, string gender, string material, string tnvedCode, string brand = "NoBrand", decimal price = 1000)
+        public object BuildUploadByItemPayload(
+            int subjectId,
+            string vendorCode,
+            string title,
+            string description,
+            string gender,
+            string material,
+            string tnvedCode,
+            string brand = "NoBrand",
+            string color = "Черный",
+            int length = 30,
+            int width = 25,
+            int height = 5,
+            double weightBrutto = 0.5,
+            List<ProductSizeItem>? sizeList = null)
         {
-            return new
+            var charcs = new List<object>();
+
+            // ID 5: TNVED
+            if (!string.IsNullOrWhiteSpace(tnvedCode))
             {
-                subjectID = subjectId,
-                variants = new[]
+                charcs.Add(new { id = 5, name = "ТНВЭД", value = tnvedCode.Trim() });
+            }
+
+            // ID 8: Gender (array of strings according to WB schema)
+            if (!string.IsNullOrWhiteSpace(gender))
+            {
+                charcs.Add(new { id = 8, name = "Пол", value = new[] { gender.Trim() } });
+            }
+
+            // Material / Composition
+            if (!string.IsNullOrWhiteSpace(material))
+            {
+                charcs.Add(new { id = 14177451, name = "Состав", value = material.Trim() });
+            }
+
+            // Color
+            if (!string.IsNullOrWhiteSpace(color))
+            {
+                charcs.Add(new { id = 1000, name = "Цвет", value = new[] { color.Trim() } });
+            }
+
+            // Sizes
+            var sizesPayload = new List<object>();
+            if (sizeList != null && sizeList.Count > 0)
+            {
+                foreach (var s in sizeList)
                 {
-                    new
+                    var skusList = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(s.Barcode))
                     {
-                        vendorCode = vendorCode,
-                        title = title,
-                        description = description,
-                        brand = brand,
-                        characteristics = new object[]
+                        skusList.Add(s.Barcode.Trim());
+                    }
+
+                    sizesPayload.Add(new
+                    {
+                        techSize = string.IsNullOrWhiteSpace(s.TechSize) ? "0" : s.TechSize.Trim(),
+                        wbSize = string.IsNullOrWhiteSpace(s.WbSize) ? (string.IsNullOrWhiteSpace(s.TechSize) ? "0" : s.TechSize.Trim()) : s.WbSize.Trim(),
+                        price = (int)s.Price,
+                        skus = skusList.ToArray()
+                    });
+                }
+            }
+            else
+            {
+                sizesPayload.Add(new
+                {
+                    techSize = "0",
+                    wbSize = "0",
+                    price = 1000,
+                    skus = Array.Empty<string>()
+                });
+            }
+
+            return new[]
+            {
+                new
+                {
+                    subjectID = subjectId,
+                    variants = new[]
+                    {
+                        new
                         {
-                            new { id = 5, name = "ТНВЭД", value = tnvedCode },
-                            new { id = 8, name = "Пол", value = gender },
-                            new { id = 10, name = "Состав", value = material }
-                        },
-                        sizes = new[]
-                        {
-                            new
+                            vendorCode = string.IsNullOrWhiteSpace(vendorCode) ? $"PROD-{DateTime.Now:yyyyMMddHHmmss}" : vendorCode.Trim(),
+                            title = string.IsNullOrWhiteSpace(title) ? "Товар Wildberries" : title.Trim(),
+                            description = description?.Trim() ?? string.Empty,
+                            brand = string.IsNullOrWhiteSpace(brand) ? "Нет бренда" : brand.Trim(),
+                            dimensions = new
                             {
-                                techSize = "FreeSize",
-                                wbSize = "",
-                                price = price,
-                                skus = new[] { Guid.NewGuid().ToString("N")[..12] }
-                            }
+                                length = Math.Max(1, length),
+                                width = Math.Max(1, width),
+                                height = Math.Max(1, height),
+                                weightBrutto = Math.Max(0.01, weightBrutto)
+                            },
+                            characteristics = charcs.ToArray(),
+                            sizes = sizesPayload.ToArray()
                         }
                     }
                 }

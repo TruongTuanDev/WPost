@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -81,7 +81,7 @@ namespace WbTnvedManager.ViewModels
             _updateService = new AppUpdateService();
 
             // Initialize Child ViewModels
-            CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService);
+            CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
             BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService);
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);
             SettingsVM = new SettingsViewModel(_settings, _apiClient);

@@ -215,5 +215,90 @@ namespace WbTnvedManager.Tests
             sw.Stop();
             Assert.True(sw.ElapsedMilliseconds >= 280, $"Expected >= 280ms delay, but took {sw.ElapsedMilliseconds}ms");
         }
+
+        [Fact]
+        public void BuildUploadByItemPayload_ShouldFormatCorrectWildberriesSchema()
+        {
+            var sizes = new List<ProductSizeItem>
+            {
+                new() { TechSize = "S", WbSize = "42", Price = 1500, Barcode = "2000000000001" },
+                new() { TechSize = "M", WbSize = "44", Price = 1600, Barcode = "2000000000002" }
+            };
+
+            var payload = _selector.BuildUploadByItemPayload(
+                subjectId: 105,
+                vendorCode: "TSHIRT-TEST-001",
+                title: "Футболка женская оверсайz",
+                description: "Mô tả chất lượng cao",
+                gender: "Женский",
+                material: "Хлопок",
+                tnvedCode: "6109100000",
+                brand: "WB Fashion",
+                color: "Черный",
+                length: 30,
+                width: 25,
+                height: 5,
+                weightBrutto: 0.5,
+                sizeList: sizes
+            );
+
+            var json = JsonSerializer.Serialize(payload);
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            Assert.Equal(JsonValueKind.Array, root.ValueKind);
+            var firstGroup = root[0];
+            Assert.Equal(105, firstGroup.GetProperty("subjectID").GetInt32());
+
+            var variants = firstGroup.GetProperty("variants");
+            Assert.Equal(1, variants.GetArrayLength());
+            var variant = variants[0];
+
+            Assert.Equal("TSHIRT-TEST-001", variant.GetProperty("vendorCode").GetString());
+            Assert.Equal("WB Fashion", variant.GetProperty("brand").GetString());
+
+            var dims = variant.GetProperty("dimensions");
+            Assert.Equal(30, dims.GetProperty("length").GetInt32());
+            Assert.Equal(25, dims.GetProperty("width").GetInt32());
+            Assert.Equal(5, dims.GetProperty("height").GetInt32());
+
+            var charcs = variant.GetProperty("characteristics");
+            Assert.True(charcs.GetArrayLength() >= 3);
+
+            var variantSizes = variant.GetProperty("sizes");
+            Assert.Equal(2, variantSizes.GetArrayLength());
+            Assert.Equal("S", variantSizes[0].GetProperty("techSize").GetString());
+            Assert.Equal("2000000000001", variantSizes[0].GetProperty("skus")[0].GetString());
+        }
+
+        [Fact]
+        public void ProductPhotoItem_ShouldDetectLocalFileAndDisplayName()
+        {
+            var tempFile = Path.GetTempFileName();
+            try
+            {
+                var photo = new ProductPhotoItem
+                {
+                    FilePath = tempFile,
+                    OrderIndex = 1
+                };
+
+                Assert.True(photo.IsLocalFile);
+                Assert.Equal(Path.GetFileName(tempFile), photo.DisplayName);
+
+                var urlPhoto = new ProductPhotoItem
+                {
+                    Url = "https://images.wbstatic.net/test.jpg",
+                    OrderIndex = 2
+                };
+
+                Assert.False(urlPhoto.IsLocalFile);
+                Assert.StartsWith("https://images.wbstatic.net/", urlPhoto.DisplayName);
+            }
+            finally
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+        }
     }
 }

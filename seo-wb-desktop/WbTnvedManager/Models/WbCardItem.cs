@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -130,6 +130,202 @@ namespace WbTnvedManager.Models
                 return elem.ToString();
             }
             return Value.ToString() ?? string.Empty;
+        }
+    }
+
+    public class ProductPhotoItem : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _filePath = string.Empty;
+        private string _url = string.Empty;
+        private int _orderIndex = 1;
+        private string _status = "Sẵn sàng";
+        private System.Windows.Media.Imaging.BitmapImage? _thumbnailImage;
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        public string FilePath
+        {
+            get => _filePath;
+            set
+            {
+                if (_filePath != value)
+                {
+                    _filePath = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsLocalFile));
+                    OnPropertyChanged(nameof(DisplayName));
+                    LoadThumbnail();
+                }
+            }
+        }
+
+        public string Url
+        {
+            get => _url;
+            set
+            {
+                if (_url != value)
+                {
+                    _url = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsLocalFile));
+                    OnPropertyChanged(nameof(DisplayName));
+                }
+            }
+        }
+
+        public bool IsLocalFile => !string.IsNullOrWhiteSpace(_filePath) && System.IO.File.Exists(_filePath);
+
+        public int OrderIndex
+        {
+            get => _orderIndex;
+            set
+            {
+                if (_orderIndex != value)
+                {
+                    _orderIndex = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string DisplayName
+        {
+            get
+            {
+                if (IsLocalFile)
+                {
+                    return System.IO.Path.GetFileName(_filePath);
+                }
+                if (!string.IsNullOrWhiteSpace(_url))
+                {
+                    return _url.Length > 35 ? _url.Substring(0, 32) + "..." : _url;
+                }
+                return "Ảnh";
+            }
+        }
+
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                if (_status != value)
+                {
+                    _status = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public System.Windows.Media.Imaging.BitmapImage? ThumbnailImage
+        {
+            get => _thumbnailImage;
+            private set
+            {
+                _thumbnailImage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private void LoadThumbnail()
+        {
+            if (IsLocalFile)
+            {
+                try
+                {
+                    var bytes = System.IO.File.ReadAllBytes(_filePath);
+                    using var stream = new System.IO.MemoryStream(bytes);
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = stream;
+                    bitmap.DecodePixelWidth = 140;
+                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    ThumbnailImage = bitmap;
+                }
+                catch
+                {
+                    ThumbnailImage = null;
+                }
+            }
+            else
+            {
+                ThumbnailImage = null;
+            }
+        }
+
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class ProductSizeItem : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _techSize = "S";
+        private string _wbSize = "42";
+        private decimal _price = 1500;
+        private string _barcode = string.Empty;
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        public string TechSize
+        {
+            get => _techSize;
+            set
+            {
+                if (_techSize != value)
+                {
+                    _techSize = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string WbSize
+        {
+            get => _wbSize;
+            set
+            {
+                if (_wbSize != value)
+                {
+                    _wbSize = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public decimal Price
+        {
+            get => _price;
+            set
+            {
+                if (_price != value)
+                {
+                    _price = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string Barcode
+        {
+            get => _barcode;
+            set
+            {
+                if (_barcode != value)
+                {
+                    _barcode = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
     }
 }
