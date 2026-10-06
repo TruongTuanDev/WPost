@@ -1,0 +1,117 @@
+﻿<UserControl x:Class="WbTnvedManager.Views.CardBuilderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:WbTnvedManager.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="📋 Hỗ Trợ Đăng Bài Mới - Gợi Ý Mã TNVED Chuẩn" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock Text="Chọn nhanh Danh mục, Giới tính, Chất liệu để hệ thống tự động khóa và điền mã TNVED 10 chữ số chuẩn." FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding RefreshSubjectsCommand}" Content="🔄 Làm mới Danh mục" Padding="12,6" Background="#EEF2F6" BorderBrush="#CBD5E1" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content (2 Columns) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Column 1: Form Selector -->
+            <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="1. THUỘC TÍNH MA TRẬN TNVED" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
+
+                        <!-- Subject Dropdown -->
+                        <TextBlock Text="Danh mục Wildberries (Subject):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <ComboBox ItemsSource="{Binding Subjects}" SelectedItem="{Binding SelectedSubject}" DisplayMemberPath="Name" Margin="0,0,0,12" Height="34" VerticalContentAlignment="Center"/>
+
+                        <!-- Gender Dropdown -->
+                        <TextBlock Text="Giới tính (Пол):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <ComboBox ItemsSource="{Binding Genders}" SelectedItem="{Binding SelectedGender}" Margin="0,0,0,12" Height="34" VerticalContentAlignment="Center"/>
+
+                        <!-- Material Dropdown -->
+                        <TextBlock Text="Chất liệu chính (Состав / Материал):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <ComboBox ItemsSource="{Binding Materials}" SelectedItem="{Binding SelectedMaterial}" Margin="0,0,0,12" Height="34" VerticalContentAlignment="Center"/>
+
+                        <!-- Knit Type Dropdown -->
+                        <TextBlock Text="Kiểu dệt (Трикотаж / Ткань):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <ComboBox ItemsSource="{Binding KnitTypes}" SelectedItem="{Binding SelectedKnitType}" Margin="0,0,0,16" Height="34" VerticalContentAlignment="Center"/>
+
+                        <!-- TNVED Result Box (Locked) -->
+                        <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="MÃ TNVED TỰ ĐỘNG KHÓA (10 CHỮ SỐ):" FontSize="11" FontWeight="Bold" Foreground="#475569"/>
+                                <TextBox Text="{Binding TnvedCode, Mode=OneWay}" IsReadOnly="True" FontWeight="Bold" FontSize="20" Foreground="#0284C7" Background="Transparent" BorderThickness="0" Margin="0,4,0,4"/>
+                                <TextBlock Text="{Binding MatchReason}" FontSize="12" Foreground="#059669" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Separator Margin="0,8,0,16"/>
+
+                        <!-- Product basic fields for payload -->
+                        <TextBlock Text="2. THÔNG TIN BÀI ĐĂNG PHỤ" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Mã sản phẩm (VendorCode / SKU):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <TextBox Text="{Binding VendorCode, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Tên tiêu đề sản phẩm:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Thương hiệu (Brand):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <TextBox Text="{Binding Brand, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Giá bán (Ruble):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                        <TextBox Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Column 2: JSON Payload Preview -->
+            <Border Grid.Column="2" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="📤 PAYLOAD CHUẨN API WB (POST /content/v2/cards/upload/by-item)" FontWeight="Bold" FontSize="13" Foreground="#38BDF8"/>
+                            <TextBlock Text="Đã đóng gói đầy đủ characteristics id 5 (ТНВЭД) và id 8 (Пол)." FontSize="12" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding CopyPayloadCommand}" Content="📋 Sao Chép JSON" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Cursor="Hand"/>
+                    </Grid>
+
+                    <TextBox Grid.Row="1" Text="{Binding GeneratedPayloadJson, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="13" Foreground="#F8FAFC" Background="#0F172A" BorderBrush="#334155" Padding="12" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+
+                    <TextBlock Grid.Row="2" Text="{Binding CopyStatus}" Foreground="#4ADE80" FontWeight="SemiBold" FontSize="13" Margin="0,8,0,0"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

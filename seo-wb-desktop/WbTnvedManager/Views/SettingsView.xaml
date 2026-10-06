@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="WbTnvedManager.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="900">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="⚙️ Cài Đặt Hệ Thống &amp; Wildberries API" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                <TextBlock Text="Cấu hình Token API, máy chủ Content API và tham số an toàn Rate Limiter chống lỗi HTTP 429." FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Settings Form -->
+        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="24" MaxWidth="700" HorizontalAlignment="Left">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="1. THÔNG TIN XÁC THỰC API WILDBERRIES" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
+
+                    <TextBlock Text="API Key / Token (Quyền Content / Контент):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+
+                    <TextBlock Text="Content API Base URL:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding ContentBaseUrl, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,16" Padding="6,0"/>
+
+                    <Separator Margin="0,8,0,16"/>
+
+                    <TextBlock Text="2. AN TOÀN KẾT NỐI &amp; RATE LIMITING" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Khoảng cách giữa các request (Rate Limit Delay):" FontWeight="SemiBold" Foreground="#334155"/>
+                        <TextBlock Grid.Column="1" Text="{Binding RateLimitDelayMs, StringFormat='{}{0} ms'}" FontWeight="Bold" Foreground="#2563EB"/>
+                    </Grid>
+                    <Slider Minimum="200" Maximum="1500" Value="{Binding RateLimitDelayMs}" TickFrequency="50" IsSnapToTickEnabled="True" Margin="0,0,0,4"/>
+                    <TextBlock Text="Khuyến nghị: 300ms - 500ms để tránh bị giới hạn HTTP 429 từ Wildberries." FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Kích thước nhóm cập nhật (Batch Size):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding BatchSize, UpdateSourceTrigger=PropertyChanged}" Width="120" Height="30" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,0,0,24" Padding="6,0"/>
+
+                    <Separator Margin="0,0,0,20"/>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Command="{Binding SaveSettingsCommand}" Content="💾 Lưu Cài Đặt" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="18,10" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand"/>
+                        <Button Command="{Binding TestConnectionCommand}" Content="🔌 Kiểm Tra Kết Nối" Background="#EEF2F6" Foreground="#334155" FontWeight="SemiBold" Padding="16,10" BorderBrush="#CBD5E1" Cursor="Hand"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ConnectionStatus}" FontWeight="SemiBold" FontSize="13" Foreground="#0284C7"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

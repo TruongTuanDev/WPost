@@ -6,3 +6,21 @@ deploy/env/*.env
 .env
 .env.*
 !.env.example
+
+# .NET / C# build outputs and temp files
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.nupkg
+*.db
+*.db-shm
+*.db-wal
+publish/
+dist/
+scratch/
+
+
