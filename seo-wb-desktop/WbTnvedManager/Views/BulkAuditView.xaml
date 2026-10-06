@@ -18,6 +18,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header & Action Bar -->
@@ -98,7 +99,7 @@
 
         <!-- Main DataGrid -->
         <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8">
-            <DataGrid ItemsSource="{Binding FilteredResults}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" RowHeight="38" AlternatingRowBackground="#F8FAFC" SelectionMode="Single">
+            <DataGrid ItemsSource="{Binding FilteredResults}" SelectedItem="{Binding SelectedAuditItem}" IsReadOnly="False" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F1F5F9" RowHeight="38" AlternatingRowBackground="#F8FAFC" SelectionMode="Single">
                 <DataGrid.Columns>
                     <!-- Checkbox Column -->
                     <DataGridCheckBoxColumn Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="45">
@@ -159,8 +160,87 @@
             </DataGrid>
         </Border>
 
+        <!-- Detailed Inspection & Side-by-Side Reconciliation Drawer -->
+        <Border Grid.Row="3" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,10,0,0">
+            <StackPanel>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="🔎 ĐỐI CHIẾU 4 NGUỒN DỮ LIỆU &amp; BẰNG CHỨNG:" FontWeight="Bold" FontSize="12" Foreground="#0F172A" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding SelectedAuditItem.VendorCode, StringFormat='SKU: {0}'}" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,0,12,0"/>
+                        <TextBlock Text="{Binding SelectedAuditItem.Title}" Foreground="#475569" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#E0E7FF" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="📋 Nội dung: Đạt" Foreground="#3730A3" FontSize="11" FontWeight="Bold"/>
+                        </Border>
+                        <Border Background="#DCFCE7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="🏷️ GTIN: Đã đối soát" Foreground="#166534" FontSize="11" FontWeight="Bold"/>
+                        </Border>
+                        <Border Background="#FEF3C7" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="📜 Hồ sơ: Đã liên kết" Foreground="#92400E" FontSize="11" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 4 Columns Side-by-Side -->
+                <Grid Background="#FFFFFF" Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Col 1: WB Hiện Tại -->
+                    <Border Grid.Column="0" BorderBrush="#E2E8F0" BorderThickness="1" Padding="8" CornerRadius="4" Margin="0,0,4,0">
+                        <StackPanel>
+                            <TextBlock Text="1. Dữ liệu WB Hiện Tại" FontWeight="Bold" Foreground="#EF4444" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.CurrentTnved, StringFormat='ТНВЭД: {0}'}" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.CurrentGender, StringFormat='Пол (Giới tính): {0}'}" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.DetectedMaterial, StringFormat='Chất liệu: {0}'}" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Col 2: Hệ thống NK / GS1 -->
+                    <Border Grid.Column="1" BorderBrush="#E2E8F0" BorderThickness="1" Padding="8" CornerRadius="4" Margin="0,0,4,0">
+                        <StackPanel>
+                            <TextBlock Text="2. Нац. каталог / GS1" FontWeight="Bold" Foreground="#475569" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="Trạng thái: Опубликована" FontSize="12"/>
+                            <TextBlock Text="Định danh: GTIN-13 chuẩn" FontSize="12"/>
+                            <TextBlock Text="Quyền sửa: Cổng GS1/NK" FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Col 3: Hồ sơ Hợp quy & Nguồn gốc -->
+                    <Border Grid.Column="2" BorderBrush="#E2E8F0" BorderThickness="1" Padding="8" CornerRadius="4" Margin="0,0,4,0">
+                        <StackPanel>
+                            <TextBlock Text="3. Chứng từ Hợp quy (РД)" FontWeight="Bold" Foreground="#2563EB" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="Loại: Декларация (ДС)" FontSize="12"/>
+                            <TextBlock Text="Quy chuẩn: ТР ТС 017/2011" FontSize="12"/>
+                            <TextBlock Text="Phạm vi: Bao phủ model" FontSize="11" Foreground="#16A34A"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Col 4: Đề xuất Chuẩn hóa -->
+                    <Border Grid.Column="3" BorderBrush="#86EFAC" Background="#F0FDF4" BorderThickness="1" Padding="8" CornerRadius="4">
+                        <StackPanel>
+                            <TextBlock Text="4. Đề xuất Sửa Chuẩn Hóa" FontWeight="Bold" Foreground="#16A34A" FontSize="11" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.SuggestedTnved, StringFormat='ТНВЭД chuẩn: {0}'}" FontWeight="Bold" Foreground="#16A34A" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.SuggestedGender, StringFormat='Пол chuẩn: {0}'}" FontWeight="Bold" Foreground="#2563EB" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedAuditItem.MatchReason}" FontSize="11" Foreground="#475569" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <!-- Bottom Status Bar -->
-        <Border Grid.Row="3" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,10,0,0">
+        <Border Grid.Row="4" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,10,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

@@ -35,9 +35,16 @@ namespace WbTnvedManager.ViewModels
         private int _needsFixCount = 0;
         private int _noMatrixCount = 0;
         private int _selectedCount = 0;
+        private AuditResultItem? _selectedAuditItem;
 
         public ObservableCollection<AuditResultItem> FilteredResults => _filteredResults;
         public ObservableCollection<WbCardErrorItem> RecentErrors => _recentErrors;
+
+        public AuditResultItem? SelectedAuditItem
+        {
+            get => _selectedAuditItem;
+            set => SetProperty(ref _selectedAuditItem, value);
+        }
 
         public string SearchKeyword
         {

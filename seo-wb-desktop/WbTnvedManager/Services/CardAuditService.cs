@@ -7,10 +7,12 @@ namespace WbTnvedManager.Services
     public class CardAuditService
     {
         private readonly TnvedSelectorService _selector;
+        private readonly RulesEngine _rulesEngine;
 
         public CardAuditService(TnvedSelectorService selector)
         {
             _selector = selector;
+            _rulesEngine = new RulesEngine(selector);
         }
 
         public List<AuditResultItem> AuditCards(IEnumerable<WbCardItem> cards)
@@ -38,6 +40,13 @@ namespace WbTnvedManager.Services
                     fullTextContext: textContext
                 );
 
+                var evaluationContext = new AuditEvaluationContext
+                {
+                    WbCard = card,
+                    Account = new SellerAccount()
+                };
+                var report = _rulesEngine.Evaluate(evaluationContext);
+
                 var item = new AuditResultItem
                 {
                     Card = card,
@@ -47,6 +56,8 @@ namespace WbTnvedManager.Services
                     SuggestedTnved = suggestedTnved,
                     SuggestedGender = detectedGender,
                     MatchReason = matchReason,
+                    Issues = report.Issues,
+                    Readiness = report.Readiness,
                     IsSelected = true
                 };
 

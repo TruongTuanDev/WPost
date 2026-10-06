@@ -65,6 +65,9 @@ namespace WbTnvedManager.Models
         public string SuggestedGender { get; set; } = string.Empty;
         public string MatchReason { get; set; } = string.Empty;
 
+        public System.Collections.Generic.List<IssueItem> Issues { get; set; } = new();
+        public ProductReadinessSummary Readiness { get; set; } = new();
+
         public bool IsSelected
         {
             get => _isSelected;
