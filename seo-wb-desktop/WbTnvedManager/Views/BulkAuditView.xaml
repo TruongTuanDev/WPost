@@ -111,7 +111,7 @@
                     </DataGridCheckBoxColumn>
 
                     <!-- Status Column -->
-                    <DataGridTemplateColumn Header="Trạng thái" Width="130">
+                    <DataGridTemplateColumn Header="Trạng thái" Width="130" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding Status, Converter={StaticResource StatusBrushConverter}}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Margin="4,0">
@@ -122,13 +122,13 @@
                     </DataGridTemplateColumn>
 
                     <!-- VendorCode & NmID -->
-                    <DataGridTextColumn Header="VendorCode / SKU" Binding="{Binding VendorCode}" Width="130" FontWeight="SemiBold"/>
-                    <DataGridTextColumn Header="NmID" Binding="{Binding NmId}" Width="100"/>
-                    <DataGridTextColumn Header="Danh mục" Binding="{Binding SubjectName}" Width="110"/>
-                    <DataGridTextColumn Header="Tiêu đề sản phẩm" Binding="{Binding Title}" Width="200"/>
+                    <DataGridTextColumn Header="VendorCode / SKU" Binding="{Binding VendorCode, Mode=OneWay}" IsReadOnly="True" Width="130" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="NmID" Binding="{Binding NmId, Mode=OneWay}" IsReadOnly="True" Width="100"/>
+                    <DataGridTextColumn Header="Danh mục" Binding="{Binding SubjectName, Mode=OneWay}" IsReadOnly="True" Width="110"/>
+                    <DataGridTextColumn Header="Tiêu đề sản phẩm" Binding="{Binding Title, Mode=OneWay}" IsReadOnly="True" Width="200"/>
 
                     <!-- Current TNVED vs Suggested TNVED -->
-                    <DataGridTemplateColumn Header="TNVED Hiện Tại -> Chuẩn" Width="200">
+                    <DataGridTemplateColumn Header="TNVED Hiện Tại -> Chuẩn" Width="200" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -141,7 +141,7 @@
                     </DataGridTemplateColumn>
 
                     <!-- Current Gender vs Suggested Gender -->
-                    <DataGridTemplateColumn Header="Giới tính Hiện Tại -> Chuẩn" Width="180">
+                    <DataGridTemplateColumn Header="Giới tính Hiện Tại -> Chuẩn" Width="180" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -154,7 +154,7 @@
                     </DataGridTemplateColumn>
 
                     <!-- Message / Reason -->
-                    <DataGridTextColumn Header="Chi tiết / Lý do" Binding="{Binding StatusMessage}" Width="*"/>
+                    <DataGridTextColumn Header="Chi tiết / Lý do" Binding="{Binding StatusMessage, Mode=OneWay}" IsReadOnly="True" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

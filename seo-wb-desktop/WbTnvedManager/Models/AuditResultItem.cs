@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -25,11 +25,35 @@ namespace WbTnvedManager.Models
 
         public WbCardItem Card { get; set; } = new();
 
-        public long NmId => Card.NmId;
-        public string VendorCode => Card.VendorCode;
-        public string Title => Card.Title;
-        public int SubjectId => Card.SubjectId;
-        public string SubjectName => Card.SubjectName;
+        public long NmId
+        {
+            get => Card.NmId;
+            set { Card.NmId = value; OnPropertyChanged(); }
+        }
+
+        public string VendorCode
+        {
+            get => Card.VendorCode;
+            set { Card.VendorCode = value; OnPropertyChanged(); }
+        }
+
+        public string Title
+        {
+            get => Card.Title;
+            set { Card.Title = value; OnPropertyChanged(); }
+        }
+
+        public int SubjectId
+        {
+            get => Card.SubjectId;
+            set { Card.SubjectId = value; OnPropertyChanged(); }
+        }
+
+        public string SubjectName
+        {
+            get => Card.SubjectName;
+            set { Card.SubjectName = value; OnPropertyChanged(); }
+        }
 
         // Current values from WB
         public string CurrentTnved { get; set; } = string.Empty;
