@@ -1,0 +1,144 @@
+<UserControl x:Class="WbTnvedManager.Views.SyncCenterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1100"
+             Background="#F8FAFC">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <!-- Header -->
+            <RowDefinition Height="Auto"/>
+            <!-- Handover Export Actions Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Filters & Jobs Grid -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20,16" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔄" FontSize="20" Margin="0,0,8,0"/>
+                    <TextBlock Text="Trung Tâm Đồng Bộ &amp; Bàn Giao Tác Vụ Ngoài App" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                </StackPanel>
+                <TextBlock Text="Theo dõi hàng đợi bất đồng bộ WB, phát hiện mâu thuẫn và xuất gói bàn giao chuẩn cho Национальный каталог, GS1 và WB Support" FontSize="13" Foreground="#64748B" Margin="28,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Handover Export Actions Bar (FR08 & FR09) -->
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
+            <StackPanel>
+                <TextBlock Text="📦 Xuất Gói Dữ Liệu Bàn Giao (Handover Export Packages):" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Command="{Binding ExportNationalCatalogTemplateCommand}" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="12,10" Margin="0,0,8,0" BorderThickness="0" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏛️ "/>
+                            <TextBlock Text="Xuất Gói Национальный каталог"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="1" Command="{Binding ExportGs1RegistrationPacketCommand}" Background="#7C3AED" Foreground="White" FontWeight="Bold" Padding="12,10" Margin="4,0,4,0" BorderThickness="0" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏷️ "/>
+                            <TextBlock Text="Xuất Gói Đăng Ký GS1rus"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{Binding ExportWbSupportTicketPacketCommand}" Background="#EA580C" Foreground="White" FontWeight="Bold" Padding="12,10" Margin="8,0,0,0" BorderThickness="0" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📩 "/>
+                            <TextBlock Text="Xuất Hồ Sơ Ticket WB Support"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <TextBlock Text="{Binding ExportNotice}" FontWeight="SemiBold" FontSize="12" Foreground="#16A34A" Margin="0,8,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content (Job Queue Table & Details) -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Jobs Table -->
+            <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="12" Margin="0,0,12,0" BorderBrush="#E2E8F0" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filter Controls -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                            <TextBlock Text="Hệ thống đích:" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <ComboBox ItemsSource="{Binding SystemOptions}" SelectedItem="{Binding SelectedSystem}" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                            <TextBlock Text="Trạng thái tác vụ:" FontSize="11" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding StatusFilter}" Height="30"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Command="{Binding ClearFinishedJobsCommand}" Content="🧹 Xóa Đã Xong" Height="30" VerticalAlignment="Bottom" Padding="10,0" Background="#F1F5F9" BorderThickness="0" Cursor="Hand"/>
+                    </Grid>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredJobs}" SelectedItem="{Binding SelectedJob}"
+                              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="36"
+                              BorderThickness="0" Background="White">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã Tác Vụ" Binding="{Binding JobId}" Width="110"/>
+                            <DataGridTextColumn Header="Hệ Thống" Binding="{Binding TargetSystem}" Width="130"/>
+                            <DataGridTextColumn Header="Loại Thao Tác" Binding="{Binding OperationType}" Width="180"/>
+                            <DataGridTextColumn Header="Thực Thể" Binding="{Binding EntityId}" Width="140"/>
+                            <DataGridTextColumn Header="Trạng Thái" Binding="{Binding Status}" Width="110"/>
+                            <DataGridTextColumn Header="Tạo Lúc" Binding="{Binding CreatedAt, StringFormat='HH:mm:ss'}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Job Detail & Traceability -->
+            <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Chi Tiết Tác Vụ &amp; Bằng Chứng" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
+
+                        <Border Background="#F8FAFC" CornerRadius="8" Padding="12" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="Mã Tác Vụ: " FontWeight="Bold" Foreground="#475569"/>
+                                <TextBlock Text="{Binding SelectedJob.JobId, FallbackValue='(Chưa chọn)'}" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Hệ Thống Đích: " FontWeight="Bold" Foreground="#475569"/>
+                                <TextBlock Text="{Binding SelectedJob.TargetSystem, FallbackValue='-'}" FontSize="13" Foreground="#0F172A" Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Trạng Thái: " FontWeight="Bold" Foreground="#475569"/>
+                                <TextBlock Text="{Binding SelectedJob.Status, FallbackValue='-'}" FontSize="13" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Nhật ký chi tiết: " FontWeight="Bold" Foreground="#475569"/>
+                                <TextBlock Text="{Binding SelectedJob.Details, FallbackValue='Vui lòng chọn một tác vụ trong bảng để xem chi tiết.'}" TextWrapping="Wrap" FontSize="12" Foreground="#334155" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Command="{Binding RetryJobCommand}" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="16,10" BorderThickness="0" Cursor="Hand" Content="🔄 Chạy Lại Tác Vụ"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

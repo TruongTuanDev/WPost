@@ -31,6 +31,8 @@ namespace WbTnvedManager.ViewModels
 
         public CardBuilderViewModel CardBuilderVM { get; }
         public BulkAuditViewModel BulkAuditVM { get; }
+        public DocumentsViewModel DocumentsVM { get; }
+        public SyncCenterViewModel SyncCenterVM { get; }
         public MatrixManagerViewModel MatrixManagerVM { get; }
         public SettingsViewModel SettingsVM { get; }
 
@@ -48,7 +50,9 @@ namespace WbTnvedManager.ViewModels
                 if (SetProperty(ref _selectedTabIndex, value))
                 {
                     if (value == 0) CardBuilderVM.LoadSubjectsFromMatrix();
-                    else if (value == 2) MatrixManagerVM.RefreshList();
+                    else if (value == 2) DocumentsVM.ApplyFilter();
+                    else if (value == 3) SyncCenterVM.ApplyFilter();
+                    else if (value == 4) MatrixManagerVM.RefreshList();
                 }
             }
         }
@@ -83,6 +87,8 @@ namespace WbTnvedManager.ViewModels
             // Initialize Child ViewModels
             CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
             BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService);
+            DocumentsVM = new DocumentsViewModel();
+            SyncCenterVM = new SyncCenterViewModel();
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);
             SettingsVM = new SettingsViewModel(_settings, _apiClient);
 
@@ -98,74 +104,56 @@ namespace WbTnvedManager.ViewModels
         {
             try
             {
-                var check = await _updateService.CheckForUpdateAsync();
-                _lastUpdateResult = check;
-                if (check.HasUpdate)
+                var result = await _updateService.CheckForUpdateAsync();
+                _lastUpdateResult = result;
+                if (result.HasUpdate)
                 {
-                    Application.Current?.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         HasUpdateAvailable = true;
-                        UpdateButtonText = $"🚀 Có Bản Mới {check.LatestVersion} - Bấm Để Cập Nhật!";
+                        UpdateButtonText = $"⚡ Tải Bản Mới (v{result.LatestVersion})";
                     });
                 }
             }
-            catch
-            {
-                // Ignore background check failure
-            }
+            catch { }
         }
 
         private async Task HandleUpdateActionAsync()
         {
-            if (HasUpdateAvailable && _lastUpdateResult != null && !string.IsNullOrEmpty(_lastUpdateResult.DownloadUrl))
+            if (HasUpdateAvailable && _lastUpdateResult?.DownloadUrl != null)
             {
-                var confirm = MessageBox.Show(
-                    $"Bạn có muốn tự động tải và cập nhật lên phiên bản {_lastUpdateResult.LatestVersion} ngay bây giờ?\n\n" +
-                    "Ứng dụng sẽ tự động tải file mới và khởi động lại phiên bản mới.",
-                    "Xác nhận cập nhật",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
-
-                if (confirm != MessageBoxResult.Yes) return;
-
                 IsDownloadingUpdate = true;
-                UpdateProgressPercent = 0;
-                UpdateButtonText = "⏳ Đang tải bản mới (0%)...";
-
-                var progress = new Progress<int>(percent =>
+                UpdateButtonText = "⏳ Đang tải bản cập nhật...";
+                var progress = new Progress<int>(p =>
                 {
-                    UpdateProgressPercent = percent;
-                    UpdateButtonText = $"⏳ Đang tải bản mới ({percent}%)...";
+                    UpdateProgressPercent = p;
+                    UpdateButtonText = $"⏳ Đang tải {p}%...";
                 });
 
                 bool ok = await _updateService.DownloadAndApplyUpdateAsync(_lastUpdateResult.DownloadUrl, progress);
                 if (!ok)
                 {
+                    UpdateButtonText = "❌ Tải thất bại. Thử lại!";
                     IsDownloadingUpdate = false;
-                    UpdateButtonText = $"🚀 Có Bản Mới {_lastUpdateResult.LatestVersion} - Bấm Để Cập Nhật!";
-                    MessageBox.Show("Không thể tải bản cập nhật tự động. Vui lòng kiểm tra kết nối mạng.", "Lỗi cập nhật", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             else
             {
                 IsCheckingUpdate = true;
                 UpdateButtonText = "🔍 Đang kiểm tra...";
-
-                var check = await _updateService.CheckForUpdateAsync();
-                _lastUpdateResult = check;
+                var result = await _updateService.CheckForUpdateAsync();
+                _lastUpdateResult = result;
                 IsCheckingUpdate = false;
 
-                if (check.HasUpdate)
+                if (result.HasUpdate)
                 {
                     HasUpdateAvailable = true;
-                    UpdateButtonText = $"🚀 Có Bản Mới {check.LatestVersion} - Bấm Để Cập Nhật!";
-                    MessageBox.Show($"Đã tìm thấy phiên bản mới: {check.LatestVersion}\n\nHãy nhấn lại nút cập nhật để nâng cấp tự động!", "Bản cập nhật mới", MessageBoxButton.OK, MessageBoxImage.Information);
+                    UpdateButtonText = $"⚡ Tải Bản Mới (v{result.LatestVersion})";
                 }
                 else
                 {
                     HasUpdateAvailable = false;
-                    UpdateButtonText = $"✅ {AppVersion} (Đang là bản mới nhất)";
-                    MessageBox.Show($"Bạn đang sử dụng phiên bản mới nhất: {AppVersion}", "Đã cập nhật", MessageBoxButton.OK, MessageBoxImage.Information);
+                    UpdateButtonText = "✅ Đang là bản mới nhất";
                 }
             }
         }

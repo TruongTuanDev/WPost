@@ -3,332 +3,241 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:converters="clr-namespace:WbTnvedManager.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="850" d:DesignWidth="1100">
-    <Grid Margin="16">
+             d:DesignHeight="850" d:DesignWidth="1100"
+             Background="#F8FAFC">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
+            <!-- Stepper Top Bar (12 Steps) -->
             <RowDefinition Height="Auto"/>
+            <!-- Active Step Content Panel -->
             <RowDefinition Height="*"/>
+            <!-- Bottom Navigation Actions -->
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
+        <!-- Stepper Top Bar -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="14,10" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="🛍️ ĐĂNG THẺ SẢN PHẨM LÊN WILDBERRIES" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
-                    <TextBlock Text="Tự chọn ảnh sản phẩm từ máy tính, tự động khóa mã TNVED chuẩn ma trận và đăng trực tiếp lên sàn WB." FontSize="13" Foreground="#64748B" Margin="0,3,0,0"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding RefreshSubjectsCommand}" Content="🔄 Làm mới Danh mục" Padding="10,6" Background="#EEF2F6" BorderBrush="#CBD5E1" Cursor="Hand" Margin="0,0,8,0"/>
-                </StackPanel>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Quy Trình 12 Bước Tạo &amp; Kiểm Tra Sản Phẩm Mới (Wildberries RU)" FontSize="15" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,8"/>
+                
+                <!-- Step Buttons / Indicator -->
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="1" Content="1. Ngữ cảnh" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="2" Content="2. Hàng thật" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="3" Content="3. Ma trận size" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="4" Content="4. ТН ВЭД" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="5" Content="5. GTIN GS1" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="6" Content="6. Hồ sơ NK" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="7" Content="7. Chứng từ РД" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="8" Content="8. Soạn bài WB" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="9" Content="9. Preflight" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="Bold" BorderThickness="0" Background="#FEE2E2" Foreground="#DC2626"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="10" Content="10. Đăng WB" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="11" Content="11. Media" Margin="0,0,4,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                        <Button Command="{Binding GoToStepCommand}" CommandParameter="12" Content="12. Marking" Margin="0,0,0,0" Padding="8,4" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="#EFF6FF" Foreground="#1D4ED8"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
         </Border>
 
-        <!-- Main Content (2 Columns) -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="520"/>
-                <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Main Step Content Panels -->
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- STEP 1 & 2: Context & Real Product Specs -->
+                    <StackPanel Visibility="{Binding CurrentStep, Converter={x:Null}}">
+                        <TextBlock Text="Bước 1 &amp; 2: Ngữ Cảnh Kinh Doanh &amp; Mô Tả Hàng Thật" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
+                        
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Thị trường mục tiêu:" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding TargetMarket}" Height="30" VerticalContentAlignment="Center" IsReadOnly="True" Background="#F8FAFC"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                                <TextBlock Text="Vai trò người bán:" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding BusinessRole}" Height="30" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                <TextBlock Text="Nguồn gốc hàng:" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding SupplySource}" Height="30" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
 
-            <!-- Column 1: Form Information (Scrollable) -->
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="0,0,6,0">
-                    
-                    <!-- Card 1: Matrix Attributes & TNVED -->
-                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <TextBlock Text="Mã hàng người bán (VendorCode / Артикул продавца):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,6,0,2"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding VendorCode, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0"/>
+                            <Button Grid.Column="1" Command="{Binding GenerateNewVendorCodeCommand}" Content="Sinh Mã Mới" Padding="12,0" Margin="6,0,0,0" Background="#F1F5F9" BorderThickness="0" Cursor="Hand"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Danh mục WB (Предмет):" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <ComboBox ItemsSource="{Binding Subjects}" SelectedItem="{Binding SelectedSubject}" DisplayMemberPath="SubjectName" Height="32"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                                <TextBlock Text="Giới tính (Пол):" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <ComboBox ItemsSource="{Binding Genders}" SelectedItem="{Binding SelectedGender}" Height="32"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                <TextBlock Text="Kết cấu dệt:" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <ComboBox ItemsSource="{Binding KnitTypes}" SelectedItem="{Binding SelectedKnitType}" Height="32"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Thành phần đa lớp độc lập (Multi-layer Composition):" FontSize="13" FontWeight="Bold" Foreground="#1E293B" Margin="0,8,0,4"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Vải chính (Outer - 100%):" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding OuterFabricComp, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,6,0">
+                                <TextBlock Text="Lót trong (Lining - nếu có):" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding LiningComp, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="6,0,0,0">
+                                <TextBlock Text="Ruột/Bông (Filling - nếu có):" FontSize="12" FontWeight="SemiBold" Foreground="#475569"/>
+                                <TextBox Text="{Binding FillingComp, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0"/>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="{Binding CompositionValidationMessage}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    </StackPanel>
+
+                    <!-- STEP 3 & 4: Variant Matrix & Classification -->
+                    <Border Background="#F8FAFC" CornerRadius="10" Padding="14" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="1. PHÂN LOẠI &amp; GỢI Ý MÃ TNVED" FontSize="13" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,10"/>
-
-                            <!-- Subject Dropdown -->
-                            <TextBlock Text="Danh mục ngành hàng (Subject):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                            <ComboBox ItemsSource="{Binding Subjects}" SelectedItem="{Binding SelectedSubject}" DisplayMemberPath="Name" Margin="0,0,0,10" Height="32" VerticalContentAlignment="Center"/>
-
-                            <Grid Margin="0,0,0,10">
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Giới tính (Пол):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <ComboBox ItemsSource="{Binding Genders}" SelectedItem="{Binding SelectedGender}" Height="30" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Chất liệu (Состав):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <ComboBox ItemsSource="{Binding Materials}" SelectedItem="{Binding SelectedMaterial}" Height="30" VerticalContentAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="Ma Trận Biến Thể Size &amp; Mã Vạch (Variants Matrix):" FontSize="14" FontWeight="Bold" Foreground="#0F172A"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button Command="{Binding AddDefaultSizesCommand}" Content="Khôi Phục S-XL" Padding="8,4" Margin="0,0,6,0" Background="#F1F5F9" BorderThickness="0" Cursor="Hand" FontSize="11"/>
+                                    <Button Command="{Binding AddSizeCommand}" Content="➕ Thêm Size" Padding="8,4" Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" FontSize="11"/>
                                 </StackPanel>
                             </Grid>
 
-                            <Grid Margin="0,0,0,10">
+                            <DataGrid ItemsSource="{Binding Sizes}" SelectedItem="{Binding SelectedSize}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False"
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="32"
+                                      BorderThickness="1" BorderBrush="#E2E8F0" Background="White" MaxHeight="180">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Size Quốc Tế" Binding="{Binding TechSize}" Width="100"/>
+                                    <DataGridTextColumn Header="Size Nga (wbSize)" Binding="{Binding RussianSize}" Width="130"/>
+                                    <DataGridTextColumn Header="Barcode / SKU (skus)" Binding="{Binding Sku}" Width="*"/>
+                                    <DataGridTextColumn Header="Giá Bán (RUB)" Binding="{Binding Price}" Width="100"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Classification & TNVED Display -->
+                            <Grid Margin="0,12,0,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Kiểu dệt (Трикотаж / Ткань):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <ComboBox ItemsSource="{Binding KnitTypes}" SelectedItem="{Binding SelectedKnitType}" Height="30" VerticalContentAlignment="Center"/>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <TextBlock Text="Mã ТН ВЭД Đề Xuất (10 số):" FontSize="12" FontWeight="Bold" Foreground="#1E293B"/>
+                                    <TextBox Text="{Binding TnvedCode, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" FontWeight="Bold" FontSize="14" Foreground="#1D4ED8"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Màu sắc chính (Цвет):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <ComboBox ItemsSource="{Binding Colors}" SelectedItem="{Binding SelectedColor}" Height="30" VerticalContentAlignment="Center"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Căn Cứ Phân Loại &amp; Quy Tắc:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B"/>
+                                    <TextBlock Text="{Binding MatchReason}" FontSize="12" FontWeight="SemiBold" Foreground="#059669" TextWrapping="Wrap" Margin="0,6,0,0"/>
                                 </StackPanel>
                             </Grid>
+                        </StackPanel>
+                    </Border>
 
-                            <!-- TNVED Result Box -->
-                            <Border Background="#F0FDF4" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="6" Padding="10">
+                    <!-- STEP 8 & 9: Russian Content & Preflight Check -->
+                    <Border Background="#F8FAFC" CornerRadius="10" Padding="14" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Nội Dung Tiếng Nga &amp; Kiểm Tra Preflight:" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Tiêu đề chuẩn Nga (Наименование):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,2,0,2"/>
+                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,8"/>
+
+                            <TextBlock Text="Mô tả chi tiết (Описание):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,2,0,2"/>
+                            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="60" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Padding="6" Margin="0,0,0,8"/>
+
+                            <!-- Preflight Score -->
+                            <Border Background="#EFF6FF" CornerRadius="8" Padding="10" Margin="0,4,0,8" BorderBrush="#BFDBFE" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="MÃ TNVED GỢI Ý CHUẨN WB:" FontSize="10" FontWeight="Bold" Foreground="#15803D"/>
-                                        <TextBox Text="{Binding TnvedCode, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" FontSize="18" Foreground="#166534" Background="Transparent" BorderThickness="0" Margin="0,2,0,2"/>
-                                        <TextBlock Text="{Binding MatchReason}" FontSize="11" Foreground="#15803D" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding PreflightReadinessScore}" FontWeight="Bold" FontSize="13" Foreground="#1E40AF"/>
+                                        <TextBlock Text="{Binding PreflightIssuesSummary}" FontSize="12" Foreground="#475569" Margin="0,2,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="🔒 Tự động" VerticalAlignment="Center" FontSize="11" Foreground="#16A34A" FontWeight="Bold"/>
+                                    <Button Grid.Column="1" Command="{Binding RunPreflightCheckCommand}" Content="🔍 Chạy Lại Preflight" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="10,6" BorderThickness="0" Cursor="Hand"/>
                                 </Grid>
                             </Border>
-                        </StackPanel>
-                    </Border>
 
-                    <!-- Card 2: Product Info -->
-                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
-                        <StackPanel>
-                            <TextBlock Text="2. THÔNG TIN SẢN PHẨM &amp; NỘI DUNG SEO" FontSize="13" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,10"/>
-
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="130"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Mã Artikul (VendorCode / SKU):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <TextBox Text="{Binding VendorCode, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-                                <Button Grid.Column="2" Command="{Binding GenerateNewVendorCodeCommand}" Content="🎲 Sinh mã ngẫu nhiên" VerticalAlignment="Bottom" Height="30" Background="#F1F5F9" BorderBrush="#CBD5E1" Cursor="Hand" FontSize="11"/>
-                            </Grid>
-
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="90"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Tiêu đề tiếng Nga (Title &lt;= 60 ký tự):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                                    <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-                                <Button Grid.Column="2" Command="{Binding SuggestRussianTitleCommand}" Content="✨ Gợi ý SEO" VerticalAlignment="Bottom" Height="30" Background="#EFF6FF" BorderBrush="#BFDBFE" Foreground="#1D4ED8" Cursor="Hand" FontSize="11" FontWeight="SemiBold"/>
-                            </Grid>
-
-                            <TextBlock Text="Thương hiệu (Brand):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155" FontSize="12"/>
-                            <TextBox Text="{Binding Brand, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" Margin="0,0,0,10"/>
-
-                            <Grid Margin="0,0,0,4">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Mô tả sản phẩm tiếng Nga (Description):" FontWeight="SemiBold" Foreground="#334155" FontSize="12"/>
-                                <Button Grid.Column="1" Command="{Binding SuggestRussianDescriptionCommand}" Content="✨ Gợi ý mô tả chuẩn SEO" Background="Transparent" BorderThickness="0" Foreground="#2563EB" Cursor="Hand" FontSize="11" FontWeight="SemiBold"/>
-                            </Grid>
-                            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Card 3: Package Dimensions -->
-                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
-                        <StackPanel>
-                            <TextBlock Text="3. KÍCH THƯỚC ĐÓNG GÓI &amp; TRỌNG LƯỢNG (BẮT BUỘC)" FontSize="13" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,10"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="6"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="6"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="6"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Dài (cm):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding PackageLength, UpdateSourceTrigger=PropertyChanged}" Height="28" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Rộng (cm):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding PackageWidth, UpdateSourceTrigger=PropertyChanged}" Height="28" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="4">
-                                    <TextBlock Text="Cao (cm):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding PackageHeight, UpdateSourceTrigger=PropertyChanged}" Height="28" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="6">
-                                    <TextBlock Text="Nặng (kg):" FontSize="11" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
-                                    <TextBox Text="{Binding PackageWeight, UpdateSourceTrigger=PropertyChanged}" Height="28" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Card 4: Sizes, Prices & Barcodes -->
-                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="4. BẢNG KÍCH THƯỚC, GIÁ &amp; BARCODE" FontSize="13" FontWeight="Bold" Foreground="#2563EB" VerticalAlignment="Center"/>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <Button Command="{Binding AddSizeCommand}" Content="➕ Thêm Size" Padding="8,4" Background="#F1F5F9" BorderBrush="#CBD5E1" Cursor="Hand" Margin="0,0,4,0" FontSize="11"/>
-                                    <Button Command="{Binding RemoveSizeCommand}" Content="➖ Xóa Size" Padding="8,4" Background="#FEE2E2" BorderBrush="#FCA5A5" Foreground="#991B1B" Cursor="Hand" Margin="0,0,4,0" FontSize="11"/>
-                                    <Button Command="{Binding GenerateBarcodesCommand}" Content="⚡ Sinh Barcode WB" Padding="8,4" Background="#EFF6FF" BorderBrush="#93C5FD" Foreground="#1D4ED8" FontWeight="Bold" Cursor="Hand" FontSize="11"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <DataGrid ItemsSource="{Binding Sizes}" SelectedItem="{Binding SelectedSize}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140" BorderThickness="1" BorderBrush="#E2E8F0" Background="#FFFFFF" GridLinesVisibility="Horizontal" HeadersVisibility="Column">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="TechSize" Binding="{Binding TechSize, UpdateSourceTrigger=PropertyChanged}" Width="75"/>
-                                    <DataGridTextColumn Header="WbSize" Binding="{Binding WbSize, UpdateSourceTrigger=PropertyChanged}" Width="75"/>
-                                    <DataGridTextColumn Header="Giá bán (₽)" Binding="{Binding Price, UpdateSourceTrigger=PropertyChanged}" Width="85"/>
-                                    <DataGridTextColumn Header="Mã Barcode EAN-13" Binding="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                            <!-- Issue Items if any -->
+                            <ItemsControl ItemsSource="{Binding PreflightIssues}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,2">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⛔ "/>
+                                                <TextBlock Text="{Binding RuleId}" FontWeight="Bold" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding Explanation}" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </ScrollViewer>
+        </Border>
 
-            <!-- Column 2: Photo Management & Publishing Studio -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="260"/>
-                    <RowDefinition Height="12"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+        <!-- Bottom Actions Bar -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="14,10" BorderBrush="#E2E8F0" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <!-- Top: Manual Photo Management -->
-                <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                <Button Grid.Column="0" Command="{Binding PrevStepCommand}" Content="⬅️ Bước Trước" Padding="14,8" Background="#F1F5F9" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Trạng thái: " FontWeight="Bold" Foreground="#64748B"/>
+                    <TextBlock Text="{Binding PublishStatus, FallbackValue='Sẵn sàng'}" FontWeight="SemiBold" Foreground="#2563EB"/>
+                </StackPanel>
 
-                        <!-- Photo Header -->
-                        <Grid Grid.Row="0" Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="📸 ẢNH SẢN PHẨM (TỰ THÊM TỪ MÁY TÍNH)" FontSize="13" FontWeight="Bold" Foreground="#2563EB"/>
-                                <TextBlock Text="Chọn trực tiếp file ảnh trong máy tính. Ảnh #1 sẽ là ảnh đại diện (Cover) của sản phẩm." FontSize="11" Foreground="#64748B"/>
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" Text="{Binding Photos.Count, StringFormat='Đã chọn: {0} ảnh'}" VerticalAlignment="Center" FontWeight="Bold" Foreground="#0284C7" FontSize="12"/>
-                        </Grid>
-
-                        <!-- Photo Action Buttons Toolbar -->
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-                            <Button Command="{Binding AddLocalPhotosCommand}" Content="📁 Thêm ảnh từ máy..." Padding="10,5" Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0" FontSize="11"/>
-                            <Button Command="{Binding AddPhotoUrlCommand}" Content="🔗 Thêm URL ảnh..." Padding="8,5" Background="#F1F5F9" BorderBrush="#CBD5E1" Cursor="Hand" Margin="0,0,6,0" FontSize="11"/>
-                            <Button Command="{Binding MovePhotoUpCommand}" Content="⬆ Lên" Padding="8,5" Background="#F8FAFC" BorderBrush="#CBD5E1" Cursor="Hand" Margin="0,0,4,0" FontSize="11"/>
-                            <Button Command="{Binding MovePhotoDownCommand}" Content="⬇ Xuống" Padding="8,5" Background="#F8FAFC" BorderBrush="#CBD5E1" Cursor="Hand" Margin="0,0,6,0" FontSize="11"/>
-                            <Button Command="{Binding RemovePhotoCommand}" Content="🗑️ Xóa" Padding="8,5" Background="#FEE2E2" BorderBrush="#FCA5A5" Foreground="#991B1B" Cursor="Hand" Margin="0,0,4,0" FontSize="11"/>
-                            <Button Command="{Binding ClearPhotosCommand}" Content="🧹 Xóa hết" Padding="8,5" Background="#F8FAFC" BorderBrush="#CBD5E1" Foreground="#64748B" Cursor="Hand" FontSize="11"/>
-                        </StackPanel>
-
-                        <!-- Photo List / Gallery -->
-                        <ListBox Grid.Row="2" ItemsSource="{Binding Photos}" SelectedItem="{Binding SelectedPhoto}" BorderThickness="1" BorderBrush="#E2E8F0" Background="#F8FAFC" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <VirtualizingStackPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Width="110" Height="140" Background="#FFFFFF" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Margin="4" Padding="4">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- Thumbnail Image -->
-                                            <Image Grid.Row="0" Source="{Binding ThumbnailImage}" Stretch="Uniform" Margin="2"/>
-
-                                            <!-- Order Badge on Image -->
-                                            <Border Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#2563EB" CornerRadius="3" Padding="4,2" Margin="2">
-                                                <TextBlock Text="{Binding OrderIndex, StringFormat='#{0}'}" Foreground="White" FontSize="10" FontWeight="Bold"/>
-                                            </Border>
-
-                                            <!-- File name footer -->
-                                            <StackPanel Grid.Row="1" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" TextAlignment="Center" Foreground="#1E293B"/>
-                                                <TextBlock Text="{Binding Status}" FontSize="9" Foreground="#059669" TextAlignment="Center"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Grid>
-                </Border>
-
-                <!-- Bottom: Payload & Publishing Hub -->
-                <Border Grid.Row="2" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="14">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Action bar -->
-                        <Grid Grid.Row="0" Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="📤 PAYLOAD &amp; TRUNG TÂM XUẤT BẢN WB" FontWeight="Bold" FontSize="13" Foreground="#38BDF8"/>
-                                <TextBlock Text="Dữ liệu chuẩn POST /content/v2/cards/upload với TNVED và đầy đủ kích thước." FontSize="11" Foreground="#94A3B8"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Command="{Binding DryRunCommand}" Content="🔍 Chạy thử (Dry Run)" Padding="10,6" Background="#334155" Foreground="#E2E8F0" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0" FontSize="11"/>
-                                <Button Command="{Binding CopyPayloadCommand}" Content="📋 Copy JSON" Padding="10,6" Background="#475569" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,6,0" FontSize="11"/>
-                                <Button Command="{Binding PublishToWbCommand}" Content="🚀 ĐĂNG LÊN WILDBERRIES" Padding="16,8" Background="#7C3AED" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" FontSize="12"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- JSON / Log Preview -->
-                        <TextBox Grid.Row="1" Text="{Binding GeneratedPayloadJson, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="12" Foreground="#F8FAFC" Background="#0F172A" BorderBrush="#334155" Padding="8" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
-
-                        <!-- Publish Status Notice -->
-                        <Border Grid.Row="2" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Padding="8" Margin="0,8,0,0">
-                            <StackPanel>
-                                <TextBlock Text="{Binding PublishStatus}" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding PublishLog}" FontSize="11" Foreground="#94A3B8" FontFamily="Consolas" TextWrapping="Wrap" Margin="0,4,0,0" MaxHeight="60"/>
-                            </StackPanel>
-                        </Border>
-
-                        <TextBlock Grid.Row="3" Text="{Binding CopyStatus}" Foreground="#4ADE80" FontWeight="SemiBold" FontSize="12" Margin="0,4,0,0"/>
-                    </Grid>
-                </Border>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Command="{Binding CopyPayloadCommand}" Content="📋 Sao Chép JSON" Padding="12,8" Margin="0,0,8,0" Background="#F1F5F9" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold"/>
+                    <Button Command="{Binding PublishDirectCommand}" Content="🚀 Đăng Lên Wildberries" Padding="18,8" Background="#16A34A" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </UserControl>
-

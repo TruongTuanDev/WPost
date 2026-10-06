@@ -61,10 +61,10 @@ namespace WbTnvedManager.Services
             }
 
             // 2. Baby check (Height <= 86cm -> Chapter 6111 for knit / 6209 for woven)
-            if (audience == "BABY" || (heightCm.HasValue && heightCm.Value <= 86m))
+            if (audience.Equals("BABY", StringComparison.OrdinalIgnoreCase) || (heightCm.HasValue && heightCm.Value <= 86m))
             {
                 result.IsBabyBranch = true;
-                if (construction == "KNITTED")
+                if (construction.Equals("KNITTED", StringComparison.OrdinalIgnoreCase))
                 {
                     result.CandidateCode = "6111209000";
                     result.ReasonVi = "Sản phẩm dành cho trẻ sơ sinh / chiều cao ≤ 86cm dệt kim thuộc nhóm ТН ВЭД 6111.";
@@ -102,12 +102,13 @@ namespace WbTnvedManager.Services
             }
 
             // 4. Note 9 EAEU: Unisex rule
-            // When goods cannot be identified as male or female apparel, they are classified under female apparel branch (6104 / 6204).
-            string effectiveGender = audience;
             if (audience.Equals("UNISEX", StringComparison.OrdinalIgnoreCase))
             {
-                effectiveGender = "FEMALE"; // Note 9 classification fallback
-                result.ReasonVi = "Theo Ghi chú 9 Chương 61/62 EAEU: Hàng Unisex không phân định rõ kiểu cắt nam/nữ được phân loại theo biểu thuế nhánh Nữ/Bé gái (6104 / 6204).";
+                result.CandidateCode = isWoven ? "6204620000" : "6104620000";
+                result.ReasonVi = "Theo Note 9 (Ghi chú 9 Chương 61/62 EAEU): Hàng Unisex không phân định rõ kiểu cắt nam/nữ được phân loại theo biểu thuế nhánh Nữ/Bé gái (6104 / 6204).";
+                result.ResolvedCode = result.CandidateCode;
+                result.IsValid = true;
+                return result;
             }
 
             result.IsValid = true;

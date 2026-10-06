@@ -36,10 +36,12 @@
 
                 <!-- Top Buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding LoadSampleCardsCommand}" Content="🧪 Nạp Thẻ Mẫu Thử Nghiệm" Background="#EEF2F6" Foreground="#2563EB" FontWeight="SemiBold" Padding="12,9" BorderBrush="#93C5FD" Margin="0,0,8,0" Cursor="Hand"/>
-                    <Button Command="{Binding ScanCardsCommand}" Content="🔍 Quét Thẻ Từ WB" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="16,9" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding ImportFileCommand}" Content="📂 Nhập File CSV" Background="#F1F5F9" Foreground="#0F172A" FontWeight="SemiBold" Padding="12,9" BorderBrush="#CBD5E1" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding ExportReportCommand}" Content="📥 Xuất Báo Cáo" Background="#F1F5F9" Foreground="#0F172A" FontWeight="SemiBold" Padding="12,9" BorderBrush="#CBD5E1" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding LoadSampleCardsCommand}" Content="🧪 Thẻ Mẫu" Background="#EEF2F6" Foreground="#2563EB" FontWeight="SemiBold" Padding="12,9" BorderBrush="#93C5FD" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding ScanCardsCommand}" Content="🔍 Quét Từ WB" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="16,9" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand"/>
                     <Button Command="{Binding BulkFixCommand}" Content="⚡ Sửa Đồng Loạt Đã Chọn" Background="#16A34A" Foreground="White" FontWeight="Bold" Padding="16,9" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand"/>
-                    <Button Command="{Binding CheckErrorsCommand}" Content="⚠️ Báo Cáo Lỗi WB" Background="#EEF2F6" Foreground="#334155" FontWeight="SemiBold" Padding="12,9" BorderBrush="#CBD5E1" Cursor="Hand"/>
+                    <Button Command="{Binding CheckErrorsCommand}" Content="⚠️ Báo Cáo Lỗi" Background="#EEF2F6" Foreground="#334155" FontWeight="SemiBold" Padding="12,9" BorderBrush="#CBD5E1" Cursor="Hand"/>
                     <Button Command="{Binding CancelCommand}" Content="⛔ Dừng" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" Background="#EF4444" Foreground="White" FontWeight="Bold" Padding="12,9" BorderThickness="0" Margin="8,0,0,0" Cursor="Hand"/>
                 </StackPanel>
             </Grid>

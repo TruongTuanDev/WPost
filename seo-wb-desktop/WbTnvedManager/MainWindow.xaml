@@ -8,8 +8,8 @@
         mc:Ignorable="d"
         Title="WPost - Wildberries TNVED Matrix &amp; Bulk Fix Manager (.NET 8)"
         Icon="app.ico"
-        Height="860" Width="1340"
-        MinHeight="680" MinWidth="1100"
+        Height="880" Width="1360"
+        MinHeight="700" MinWidth="1120"
         WindowStartupLocation="CenterScreen"
         Background="#F8FAFC"
         FontFamily="Segoe UI, Segoe UI Variable, Microsoft Sans Serif">
@@ -19,7 +19,6 @@
     </Window.DataContext>
 
     <Window.Resources>
-        <!-- Modern Sidebar Nav Item Style matching uploaded UI -->
         <Style x:Key="SidebarNavItemStyle" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="14,11"/>
             <Setter Property="Margin" Value="0,3"/>
@@ -70,16 +69,16 @@
         <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0">
             <Grid Margin="16,20,16,16">
                 <Grid.RowDefinitions>
-                    <!-- Logo & Brand Header -->
+                    <!-- Logo Header -->
                     <RowDefinition Height="Auto"/>
                     <!-- Navigation Menu -->
                     <RowDefinition Height="*"/>
-                    <!-- Bottom Version & Update Footer -->
+                    <!-- Bottom Version Footer -->
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- 1. Brand Logo Header -->
-                <StackPanel Grid.Row="0" Margin="4,0,4,24">
+                <StackPanel Grid.Row="0" Margin="4,0,4,20">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="#2563EB" CornerRadius="10" Width="40" Height="40" Margin="0,0,12,0">
                             <TextBlock Text="WB" Foreground="White" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -89,7 +88,7 @@
                             <TextBlock Text="TNVED Matrix &amp; Bulk Fix" Foreground="#64748B" FontSize="11" FontWeight="SemiBold"/>
                         </StackPanel>
                     </StackPanel>
-                    <Separator Margin="0,16,0,0" Background="#F1F5F9"/>
+                    <Separator Margin="0,14,0,0" Background="#F1F5F9"/>
                 </StackPanel>
 
                 <!-- 2. Navigation List -->
@@ -99,7 +98,7 @@
                             <StaticResource ResourceKey="SidebarNavItemStyle"/>
                         </ListBox.ItemContainerStyle>
 
-                        <!-- Nav 0: Hỗ Trợ Đăng Bài -->
+                        <!-- Nav 0: Hỗ Trợ Đăng Bài 12 Bước -->
                         <ListBoxItem>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -107,7 +106,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="📋" FontSize="16" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="Hỗ trợ đăng bài" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <TextBlock Grid.Column="1" Text="Tạo sản phẩm (12 bước)" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
                             </Grid>
                         </ListBoxItem>
 
@@ -121,15 +120,37 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="🔍" FontSize="16" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="Quét &amp; sửa lỗi" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                
-                                <!-- Dynamic Badge (Shows items needing fix) -->
                                 <Border Grid.Column="2" Background="#EF4444" CornerRadius="10" Padding="7,2" Margin="4,0,0,0" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding BulkAuditVM.NeedsFixCount, Mode=OneWay}" Foreground="White" FontWeight="Bold" FontSize="11"/>
                                 </Border>
                             </Grid>
                         </ListBoxItem>
 
-                        <!-- Nav 2: Quản Lý Ma Trận TNVED -->
+                        <!-- Nav 2: Hồ Sơ Chứng Từ РД -->
+                        <ListBoxItem>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="📜" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Hồ sơ chứng từ (РД)" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </Grid>
+                        </ListBoxItem>
+
+                        <!-- Nav 3: Đồng Bộ & Bàn Giao -->
+                        <ListBoxItem>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔄" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Đồng bộ &amp; Bàn giao" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </Grid>
+                        </ListBoxItem>
+
+                        <!-- Nav 4: Quản Lý Ma Trận TNVED -->
                         <ListBoxItem>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -141,7 +162,7 @@
                             </Grid>
                         </ListBoxItem>
 
-                        <!-- Nav 3: Cài Đặt Hệ Thống -->
+                        <!-- Nav 5: Cài Đặt -->
                         <ListBoxItem>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -155,10 +176,9 @@
                     </ListBox>
                 </ScrollViewer>
 
-                <!-- 3. Bottom Version Badge & Auto-Update -->
+                <!-- 3. Bottom Version Badge -->
                 <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,12,0,0">
                     <StackPanel>
-                        <!-- Version Tag & DB Status -->
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -166,47 +186,22 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🟢 " FontSize="10" VerticalAlignment="Center"/>
-                                <TextBlock Text="SQLite Ready" Foreground="#10B981" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="Spec 2026-10-07" Foreground="#10B981" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Border Grid.Column="1" Background="#EEF2F6" CornerRadius="4" Padding="6,2">
                                 <TextBlock Text="{Binding AppVersion, Mode=OneWay}" Foreground="#2563EB" FontWeight="Bold" FontSize="11"/>
                             </Border>
                         </Grid>
 
-                        <!-- Auto Update Button -->
                         <Button Command="{Binding CheckOrApplyUpdateCommand}" 
                                 Padding="10,8" 
                                 FontSize="12" 
                                 FontWeight="Bold" 
                                 Cursor="Hand"
                                 BorderThickness="0"
-                                HorizontalAlignment="Stretch">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="#2563EB"/>
-                                    <Setter Property="Foreground" Value="#FFFFFF"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="btnBorder" Property="Background" Value="#1D4ED8"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasUpdateAvailable}" Value="True">
-                                            <Setter Property="Background" Value="#16A34A"/>
-                                            <Setter Property="Foreground" Value="#FFFFFF"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                                HorizontalAlignment="Stretch"
+                                Background="#2563EB"
+                                Foreground="White">
                             <TextBlock Text="{Binding UpdateButtonText, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center"/>
                         </Button>
                     </StackPanel>
@@ -216,7 +211,6 @@
 
         <!-- ================= RIGHT MAIN CONTENT AREA ================= -->
         <Grid Grid.Column="1" Background="#F8FAFC">
-            <!-- Headerless TabControl hosting views, switched by SelectedTabIndex -->
             <TabControl SelectedIndex="{Binding SelectedTabIndex}" Background="Transparent" BorderThickness="0" Padding="0">
                 <TabControl.ItemContainerStyle>
                     <Style TargetType="TabItem">
@@ -224,7 +218,7 @@
                     </Style>
                 </TabControl.ItemContainerStyle>
 
-                <!-- Tab 0: Card Builder -->
+                <!-- Tab 0: Card Builder (12 Steps) -->
                 <TabItem>
                     <views:CardBuilderView DataContext="{Binding CardBuilderVM}"/>
                 </TabItem>
@@ -234,12 +228,22 @@
                     <views:BulkAuditView DataContext="{Binding BulkAuditVM}"/>
                 </TabItem>
 
-                <!-- Tab 2: Matrix Manager -->
+                <!-- Tab 2: Conformity Documents РД -->
+                <TabItem>
+                    <views:DocumentsView DataContext="{Binding DocumentsVM}"/>
+                </TabItem>
+
+                <!-- Tab 3: Sync Center & Handover -->
+                <TabItem>
+                    <views:SyncCenterView DataContext="{Binding SyncCenterVM}"/>
+                </TabItem>
+
+                <!-- Tab 4: Matrix Manager -->
                 <TabItem>
                     <views:MatrixManagerView DataContext="{Binding MatrixManagerVM}"/>
                 </TabItem>
 
-                <!-- Tab 3: Settings -->
+                <!-- Tab 5: Settings -->
                 <TabItem>
                     <views:SettingsView DataContext="{Binding SettingsVM}"/>
                 </TabItem>

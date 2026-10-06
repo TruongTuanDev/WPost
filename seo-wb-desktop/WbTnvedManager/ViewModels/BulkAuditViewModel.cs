@@ -97,6 +97,8 @@ namespace WbTnvedManager.ViewModels
         public ICommand SelectAllCommand { get; }
         public ICommand DeselectAllCommand { get; }
         public ICommand CheckErrorsCommand { get; }
+        public ICommand ImportFileCommand { get; }
+        public ICommand ExportReportCommand { get; }
 
         public BulkAuditViewModel(
             IWbApiClient apiClient,
@@ -116,9 +118,59 @@ namespace WbTnvedManager.ViewModels
             SelectAllCommand = new RelayCommand(SelectAll);
             DeselectAllCommand = new RelayCommand(DeselectAll);
             CheckErrorsCommand = new RelayCommand(async () => await LoadErrorsAsync(), () => !IsBusy);
+            ImportFileCommand = new RelayCommand(ImportFile, () => !IsBusy);
+            ExportReportCommand = new RelayCommand(ExportReport, () => !IsBusy);
 
             // Auto-load sample cards on startup so UI is never blank
             LoadSampleCards();
+        }
+
+        private void ImportFile()
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "File dữ liệu (*.csv;*.txt)|*.csv;*.txt|Tất cả file (*.*)|*.*",
+                Title = "Chọn file danh mục sản phẩm (CSV)"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var importResult = FileImportExportService.ImportFromDelimitedText(dialog.FileName);
+                if (importResult.Success && importResult.ImportedCards.Count > 0)
+                {
+                    _allAuditResults = _auditService.AuditCards(importResult.ImportedCards);
+                    ApplyFilter();
+                    UpdateCounts();
+                    StatusMessage = importResult.Message;
+                    MessageBox.Show(importResult.Message + (importResult.Warnings.Count > 0 ? "\n\nCảnh báo:\n" + string.Join("\n", importResult.Warnings.Take(3)) : ""), "Nhập file thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(importResult.Message, "Lỗi nhập file", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void ExportReport()
+        {
+            if (_allAuditResults.Count == 0)
+            {
+                MessageBox.Show("Chưa có dữ liệu để xuất báo cáo.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "File Excel CSV (*.csv)|*.csv",
+                FileName = $"BaoCao_KiemTra_TNVED_{DateTime.Now:yyyyMMdd_HHmmss}.csv",
+                Title = "Lưu báo cáo kiểm tra"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                FileImportExportService.ExportAuditResultsToCsv(_allAuditResults, dialog.FileName);
+                MessageBox.Show($"Đã xuất báo cáo thành công ra file:\n{dialog.FileName}", "Xuất báo cáo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         public void LoadSampleCards()

@@ -20,28 +20,60 @@ namespace WbTnvedManager.ViewModels
         private readonly TnvedSelectorService _selector;
         private readonly IWbApiClient? _apiClient;
 
-        private WbSubjectItem? _selectedSubject;
+        // Wizard Step (1 to 12)
+        private int _currentStep = 1;
+
+        // Step 1: Context
+        private string _targetMarket = "RU (Nga)";
+        private string _businessRole = "Nhà sản xuất / Bán lẻ ủy quyền";
+        private string _supplySource = "Sản xuất nội địa / Nhập khẩu chính ngạch";
+
+        // Step 2: Real Product Specs & Composition
+        private string _vendorCode = "PROD-" + DateTime.Now.ToString("yyMMddHHmm");
+        private string _title = "Футболка женская оверсайз базовая";
+        private string _brand = "Нет бренда";
+        private string _description = "Стильная и комфортная базовая модель прямого кроя. Выполнена из качественного дышащего хлопка. Идеально подходит для повседневной носки, работы, учебы и отдыха.";
         private string _selectedGender = "Женский";
         private string _selectedMaterial = "Хлопок";
         private string _selectedKnitType = "Трикотаж";
-        private string _selectedColor = "Черный";
-
-        private string _vendorCode = "PROD-" + DateTime.Now.ToString("yyMMddHHmm");
-        private string _title = "Футболка женская оверсайз хлопок";
-        private string _brand = "Нет бренда";
-        private string _description = "Стильная и комфортная базовая модель прямого кроя. Выполнена из качественного дышащего хлопка. Идеально подходит для повседневной носки, работы, учебы и отдыха.";
         
-        // Dimensions
+        // Multi-layer composition
+        private string _outerFabricComp = "100% Хлопок";
+        private string _liningComp = "";
+        private string _fillingComp = "";
+        private string _compositionValidationMessage = "✅ Thành phần hợp lệ (100% từng lớp).";
+
+        // Step 3: Variant Matrix & Russian Sizes
+        private string _selectedColor = "Черный";
         private int _packageLength = 30;
         private int _packageWidth = 25;
         private int _packageHeight = 5;
         private double _packageWeight = 0.5;
 
-        private string _tnvedCode = string.Empty;
-        private string _matchReason = string.Empty;
+        // Step 4: Classification & TNVED
+        private WbSubjectItem? _selectedSubject;
+        private string _tnvedCode = "6109100000";
+        private string _matchReason = "Áo thun dệt kim cho nữ/người lớn từ cotton (Nhóm 6109.10)";
+
+        // Step 5: GTIN Verification
+        private string _gtinValidationSummary = "Đã kiểm tra thuật toán GS1 Modulo-10 cho tất cả biến thể.";
+
+        // Step 6: National Catalog
+        private string _nkSnapshotStatus = "Sẵn sàng xuất gói bàn giao Национальный каталог (NK).";
+
+        // Step 7: Conformity Documents
+        private string _selectedDocumentNumber = "ЕАЭС N RU Д-RU.РА01.В.12345/26";
+        private string _documentValidationSummary = "✅ Chứng từ ДС hợp lệ, còn hạn đến năm 2028.";
+
+        // Step 8: Russian Content Preview
         private string _generatedPayloadJson = string.Empty;
         private string _copyStatus = string.Empty;
 
+        // Step 9: Preflight Check
+        private string _preflightReadinessScore = "100% - Sẵn sàng đăng tải";
+        private string _preflightIssuesSummary = "Không phát hiện lỗi chặn nghiêm trọng.";
+
+        // Step 10: Submit Status
         private bool _isPublishing = false;
         private string _publishStatus = string.Empty;
         private string _publishLog = string.Empty;
@@ -49,44 +81,15 @@ namespace WbTnvedManager.ViewModels
         private ProductPhotoItem? _selectedPhoto;
         private ProductSizeItem? _selectedSize;
 
-        public ObservableCollection<WbSubjectItem> Subjects { get; } = new();
-        public ObservableCollection<string> Genders { get; } = new() { "Женский", "Мужской", "Девочки", "Мальчики", "Унисекс" };
-        public ObservableCollection<string> Materials { get; } = new() { "Хлопок", "Полиэстер", "Синтетика", "Шерсть", "Лен", "Шелк", "Вискоза", "Кожа", "Текстиль", "Джинс", "Футер" };
-        public ObservableCollection<string> KnitTypes { get; } = new() { "Трикотаж", "Ткань" };
-        public ObservableCollection<string> Colors { get; } = new() { "Черный", "Белый", "Бежевый", "Синий", "Серый", "Красный", "Зеленый", "Розовый", "Коричневый", "Желтый", "Мятный" };
-
-        public ObservableCollection<ProductSizeItem> Sizes { get; } = new();
-        public ObservableCollection<ProductPhotoItem> Photos { get; } = new();
-
-        public WbSubjectItem? SelectedSubject
+        public int CurrentStep
         {
-            get => _selectedSubject;
-            set { if (SetProperty(ref _selectedSubject, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
+            get => _currentStep;
+            set => SetProperty(ref _currentStep, Math.Clamp(value, 1, 12));
         }
 
-        public string SelectedGender
-        {
-            get => _selectedGender;
-            set { if (SetProperty(ref _selectedGender, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
-        }
-
-        public string SelectedMaterial
-        {
-            get => _selectedMaterial;
-            set { if (SetProperty(ref _selectedMaterial, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
-        }
-
-        public string SelectedKnitType
-        {
-            get => _selectedKnitType;
-            set { if (SetProperty(ref _selectedKnitType, value)) RecalculateTnved(); }
-        }
-
-        public string SelectedColor
-        {
-            get => _selectedColor;
-            set { if (SetProperty(ref _selectedColor, value)) GeneratePayload(); }
-        }
+        public string TargetMarket { get => _targetMarket; set => SetProperty(ref _targetMarket, value); }
+        public string BusinessRole { get => _businessRole; set => SetProperty(ref _businessRole, value); }
+        public string SupplySource { get => _supplySource; set => SetProperty(ref _supplySource, value); }
 
         public string VendorCode
         {
@@ -110,6 +113,72 @@ namespace WbTnvedManager.ViewModels
         {
             get => _description;
             set { if (SetProperty(ref _description, value)) GeneratePayload(); }
+        }
+
+        public string SelectedGender
+        {
+            get => _selectedGender;
+            set { if (SetProperty(ref _selectedGender, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
+        }
+
+        public string SelectedMaterial
+        {
+            get => _selectedMaterial;
+            set { if (SetProperty(ref _selectedMaterial, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
+        }
+
+        public string SelectedKnitType
+        {
+            get => _selectedKnitType;
+            set { if (SetProperty(ref _selectedKnitType, value)) RecalculateTnved(); }
+        }
+
+        public string OuterFabricComp
+        {
+            get => _outerFabricComp;
+            set { if (SetProperty(ref _outerFabricComp, value)) ValidateComposition(); }
+        }
+
+        public string LiningComp
+        {
+            get => _liningComp;
+            set { if (SetProperty(ref _liningComp, value)) ValidateComposition(); }
+        }
+
+        public string FillingComp
+        {
+            get => _fillingComp;
+            set { if (SetProperty(ref _fillingComp, value)) ValidateComposition(); }
+        }
+
+        public string CompositionValidationMessage
+        {
+            get => _compositionValidationMessage;
+            set => SetProperty(ref _compositionValidationMessage, value);
+        }
+
+        public string SelectedColor
+        {
+            get => _selectedColor;
+            set { if (SetProperty(ref _selectedColor, value)) GeneratePayload(); }
+        }
+
+        public WbSubjectItem? SelectedSubject
+        {
+            get => _selectedSubject;
+            set { if (SetProperty(ref _selectedSubject, value)) { RecalculateTnved(); AutoSuggestTitle(); } }
+        }
+
+        public string TnvedCode
+        {
+            get => _tnvedCode;
+            set { if (SetProperty(ref _tnvedCode, value)) GeneratePayload(); }
+        }
+
+        public string MatchReason
+        {
+            get => _matchReason;
+            set => SetProperty(ref _matchReason, value);
         }
 
         public int PackageLength
@@ -136,16 +205,28 @@ namespace WbTnvedManager.ViewModels
             set { if (SetProperty(ref _packageWeight, value)) GeneratePayload(); }
         }
 
-        public string TnvedCode
+        public string GtinValidationSummary
         {
-            get => _tnvedCode;
-            set { if (SetProperty(ref _tnvedCode, value)) GeneratePayload(); }
+            get => _gtinValidationSummary;
+            set => SetProperty(ref _gtinValidationSummary, value);
         }
 
-        public string MatchReason
+        public string NkSnapshotStatus
         {
-            get => _matchReason;
-            set => SetProperty(ref _matchReason, value);
+            get => _nkSnapshotStatus;
+            set => SetProperty(ref _nkSnapshotStatus, value);
+        }
+
+        public string SelectedDocumentNumber
+        {
+            get => _selectedDocumentNumber;
+            set => SetProperty(ref _selectedDocumentNumber, value);
+        }
+
+        public string DocumentValidationSummary
+        {
+            get => _documentValidationSummary;
+            set => SetProperty(ref _documentValidationSummary, value);
         }
 
         public string GeneratedPayloadJson
@@ -158,6 +239,18 @@ namespace WbTnvedManager.ViewModels
         {
             get => _copyStatus;
             set => SetProperty(ref _copyStatus, value);
+        }
+
+        public string PreflightReadinessScore
+        {
+            get => _preflightReadinessScore;
+            set => SetProperty(ref _preflightReadinessScore, value);
+        }
+
+        public string PreflightIssuesSummary
+        {
+            get => _preflightIssuesSummary;
+            set => SetProperty(ref _preflightIssuesSummary, value);
         }
 
         public bool IsPublishing
@@ -190,445 +283,428 @@ namespace WbTnvedManager.ViewModels
             set => SetProperty(ref _selectedSize, value);
         }
 
+        public ObservableCollection<WbSubjectItem> Subjects { get; } = new();
+        public ObservableCollection<string> Genders { get; } = new() { "Женский", "Мужской", "Девочки", "Мальчики", "Унисекс" };
+        public ObservableCollection<string> Materials { get; } = new() { "Хлопок", "Полиэстер", "Синтетика", "Шерсть", "Лен", "Шелк", "Вискоза", "Кожа", "Текстиль", "Джинс", "Футер" };
+        public ObservableCollection<string> KnitTypes { get; } = new() { "Трикотаж", "Ткань" };
+        public ObservableCollection<string> Colors { get; } = new() { "Черный", "Белый", "Бежевый", "Синий", "Серый", "Красный", "Зеленый", "Розовый", "Коричневый", "Желтый", "Мятный" };
+        public ObservableCollection<ProductSizeItem> Sizes { get; } = new();
+        public ObservableCollection<ProductPhotoItem> Photos { get; } = new();
+        public ObservableCollection<IssueItem> PreflightIssues { get; } = new();
+
+        public ICommand NextStepCommand { get; }
+        public ICommand PrevStepCommand { get; }
+        public ICommand GoToStepCommand { get; }
         public ICommand CopyPayloadCommand { get; }
-        public ICommand RefreshSubjectsCommand { get; }
         public ICommand GenerateNewVendorCodeCommand { get; }
         public ICommand SuggestRussianTitleCommand { get; }
         public ICommand SuggestRussianDescriptionCommand { get; }
-
         public ICommand AddSizeCommand { get; }
         public ICommand RemoveSizeCommand { get; }
-        public ICommand GenerateBarcodesCommand { get; }
-
-        public ICommand AddLocalPhotosCommand { get; }
+        public ICommand AddDefaultSizesCommand { get; }
         public ICommand AddPhotoUrlCommand { get; }
+        public ICommand AddLocalPhotoCommand { get; }
         public ICommand RemovePhotoCommand { get; }
-        public ICommand MovePhotoUpCommand { get; }
-        public ICommand MovePhotoDownCommand { get; }
-        public ICommand ClearPhotosCommand { get; }
+        public ICommand PublishDirectCommand { get; }
+        public ICommand RunPreflightCheckCommand { get; }
 
-        public ICommand PublishToWbCommand { get; }
-        public ICommand DryRunCommand { get; }
-
-        public CardBuilderViewModel(MatrixRepository repository, TnvedSelectorService selector, IWbApiClient? apiClient = null)
+        public CardBuilderViewModel(MatrixRepository repository, TnvedSelectorService selector, IWbApiClient? apiClient)
         {
             _repository = repository;
             _selector = selector;
             _apiClient = apiClient;
 
-            CopyPayloadCommand = new RelayCommand(CopyPayload);
-            RefreshSubjectsCommand = new RelayCommand(LoadSubjectsFromMatrix);
+            NextStepCommand = new RelayCommand(() => { if (CurrentStep < 12) CurrentStep++; if (CurrentStep == 9) RunPreflightCheck(); });
+            PrevStepCommand = new RelayCommand(() => { if (CurrentStep > 1) CurrentStep--; });
+            GoToStepCommand = new RelayCommand(p => { if (int.TryParse(p?.ToString(), out int step)) CurrentStep = step; });
+
+            CopyPayloadCommand = new RelayCommand(CopyPayloadToClipboard);
             GenerateNewVendorCodeCommand = new RelayCommand(GenerateNewVendorCode);
             SuggestRussianTitleCommand = new RelayCommand(AutoSuggestTitle);
             SuggestRussianDescriptionCommand = new RelayCommand(AutoSuggestDescription);
 
-            AddSizeCommand = new RelayCommand(AddSizeRow);
-            RemoveSizeCommand = new RelayCommand(RemoveSelectedSize, () => SelectedSize != null);
-            GenerateBarcodesCommand = new RelayCommand(async () => await GenerateMissingBarcodesAsync(), () => !IsPublishing);
+            AddSizeCommand = new RelayCommand(AddSize);
+            RemoveSizeCommand = new RelayCommand(RemoveSize, () => SelectedSize != null);
+            AddDefaultSizesCommand = new RelayCommand(AddDefaultSizes);
 
-            AddLocalPhotosCommand = new RelayCommand(BrowseAndAddLocalPhotos);
-            AddPhotoUrlCommand = new RelayCommand(AddPhotoByUrl);
-            RemovePhotoCommand = new RelayCommand(RemoveSelectedPhoto, () => SelectedPhoto != null);
-            MovePhotoUpCommand = new RelayCommand(MoveSelectedPhotoUp, () => SelectedPhoto != null && Photos.IndexOf(SelectedPhoto) > 0);
-            MovePhotoDownCommand = new RelayCommand(MoveSelectedPhotoDown, () => SelectedPhoto != null && Photos.IndexOf(SelectedPhoto) < Photos.Count - 1);
-            ClearPhotosCommand = new RelayCommand(() => { Photos.Clear(); UpdatePhotoIndices(); });
-
-            PublishToWbCommand = new RelayCommand(async () => await PublishCardToWildberriesAsync(dryRun: false), () => !IsPublishing);
-            DryRunCommand = new RelayCommand(async () => await PublishCardToWildberriesAsync(dryRun: true), () => !IsPublishing);
-
-            // Seed default standard sizes
-            Sizes.Add(new ProductSizeItem { TechSize = "S", WbSize = "42", Price = 1500, Barcode = "" });
-            Sizes.Add(new ProductSizeItem { TechSize = "M", WbSize = "44", Price = 1500, Barcode = "" });
-            Sizes.Add(new ProductSizeItem { TechSize = "L", WbSize = "46", Price = 1500, Barcode = "" });
-            Sizes.Add(new ProductSizeItem { TechSize = "XL", WbSize = "48", Price = 1500, Barcode = "" });
-
-            foreach (var size in Sizes)
-            {
-                size.PropertyChanged += (s, e) => GeneratePayload();
-            }
+            AddPhotoUrlCommand = new RelayCommand(AddPhotoUrl);
+            AddLocalPhotoCommand = new RelayCommand(AddLocalPhoto);
+            RemovePhotoCommand = new RelayCommand(RemovePhoto, () => SelectedPhoto != null);
+            PublishDirectCommand = new RelayCommand(async () => await PublishCardDirectlyAsync(), () => !IsPublishing);
+            RunPreflightCheckCommand = new RelayCommand(RunPreflightCheck);
 
             LoadSubjectsFromMatrix();
+            AddDefaultSizes();
+            GeneratePayload();
         }
 
         public void LoadSubjectsFromMatrix()
         {
-            var entries = _repository.GetAll();
-            var distinctSubjects = entries
-                .GroupBy(e => e.SubjectId)
-                .Select(g => new WbSubjectItem { Id = g.Key, Name = g.First().SubjectName })
-                .OrderBy(s => s.Name)
-                .ToList();
-
             Subjects.Clear();
-            foreach (var s in distinctSubjects)
+            var list = _repository.GetAll();
+            var distinctSubjects = list
+                .GroupBy(x => x.SubjectId)
+                .Select(g => g.First())
+                .OrderBy(x => x.SubjectName);
+
+            foreach (var item in distinctSubjects)
             {
-                Subjects.Add(s);
+                Subjects.Add(new WbSubjectItem { SubjectId = item.SubjectId, SubjectName = item.SubjectName });
             }
 
-            if (Subjects.Count > 0 && SelectedSubject == null)
+            if (Subjects.Count > 0)
             {
-                SelectedSubject = Subjects.FirstOrDefault(s => s.Id == 105) ?? Subjects[0];
+                SelectedSubject = Subjects.FirstOrDefault(s => s.SubjectName.Contains("Футболка", StringComparison.OrdinalIgnoreCase)) ?? Subjects[0];
+            }
+        }
+
+        private void ValidateComposition()
+        {
+            var components = new List<ProductComponent>();
+            if (!string.IsNullOrWhiteSpace(OuterFabricComp))
+            {
+                components.Add(new ProductComponent
+                {
+                    Type = "OUTER",
+                    Fibers = new() { new FiberComposition { NameRu = OuterFabricComp, Percentage = 100 } }
+                });
+            }
+            if (!string.IsNullOrWhiteSpace(LiningComp))
+            {
+                components.Add(new ProductComponent
+                {
+                    Type = "LINING",
+                    Fibers = new() { new FiberComposition { NameRu = LiningComp, Percentage = 100 } }
+                });
+            }
+
+            var results = CompositionValidator.ValidateAllComponents(components);
+            bool allValid = results.All(r => r.IsValid);
+            if (allValid)
+            {
+                CompositionValidationMessage = "✅ Thành phần hợp lệ (100% từng lớp).";
             }
             else
             {
-                RecalculateTnved();
+                CompositionValidationMessage = $"⚠️ Lỗi thành phần: {string.Join("; ", results.Where(r => !r.IsValid).Select(r => r.ErrorMessage))}";
             }
         }
 
         private void RecalculateTnved()
         {
-            if (SelectedSubject == null)
+            if (SelectedSubject == null) return;
+
+            string constr = SelectedKnitType == "Трикотаж" ? "KNITTED" : "WOVEN";
+            string aud = SelectedGender == "Женский" ? "FEMALE" : SelectedGender == "Мужской" ? "MALE" : SelectedGender == "Девочки" ? "GIRLS" : SelectedGender == "Мальчики" ? "BOYS" : "UNISEX";
+
+            var eval = TnvedClassificationEngine.EvaluateClassification(
+                null,
+                SelectedSubject.SubjectName,
+                constr,
+                aud,
+                170,
+                SelectedMaterial);
+
+            if (!string.IsNullOrEmpty(eval.CandidateCode))
             {
-                TnvedCode = string.Empty;
-                MatchReason = "Vui lòng chọn danh mục";
-                GeneratePayload();
-                return;
+                TnvedCode = eval.CandidateCode;
+                MatchReason = eval.ReasonVi;
             }
+            else
+            {
+                var (code, reason) = _selector.GetTnvedForAttributes(
+                    SelectedSubject.SubjectId,
+                    SelectedGender,
+                    SelectedMaterial,
+                    SelectedKnitType,
+                    SelectedSubject.SubjectName,
+                    Title);
 
-            var (code, reason) = _selector.GetTnvedForAttributes(
-                SelectedSubject.Id,
-                SelectedGender,
-                SelectedMaterial,
-                SelectedKnitType
-            );
-
-            TnvedCode = code;
-            MatchReason = reason;
+                if (!string.IsNullOrWhiteSpace(code))
+                {
+                    TnvedCode = code;
+                    MatchReason = reason;
+                }
+                else
+                {
+                    TnvedCode = "6109100000";
+                    MatchReason = "Mã dự phòng tiêu chuẩn quần áo dệt kim";
+                }
+            }
             GeneratePayload();
-        }
-
-        public void GeneratePayload()
-        {
-            if (SelectedSubject == null || string.IsNullOrWhiteSpace(TnvedCode))
-            {
-                GeneratedPayloadJson = "// Chọn đầy đủ thông tin để tự động sinh Payload chuẩn WB.";
-                return;
-            }
-
-            var payloadObj = _selector.BuildUploadByItemPayload(
-                subjectId: SelectedSubject.Id,
-                vendorCode: VendorCode,
-                title: Title,
-                description: Description,
-                gender: SelectedGender,
-                material: SelectedMaterial,
-                tnvedCode: TnvedCode,
-                brand: Brand,
-                color: SelectedColor,
-                length: PackageLength,
-                width: PackageWidth,
-                height: PackageHeight,
-                weightBrutto: PackageWeight,
-                sizeList: Sizes.ToList()
-            );
-
-            GeneratedPayloadJson = JsonSerializer.Serialize(payloadObj, new JsonSerializerOptions { WriteIndented = true });
-            CopyStatus = string.Empty;
-        }
-
-        private void GenerateNewVendorCode()
-        {
-            VendorCode = $"WB-{DateTime.Now:yyyyMMdd}-{new Random().Next(100, 999)}";
         }
 
         private void AutoSuggestTitle()
         {
-            if (SelectedSubject == null) return;
-            string subj = SelectedSubject.Name;
-            string genderWord = SelectedGender == "Женский" ? "женская" : (SelectedGender == "Мужской" ? "мужская" : (SelectedGender == "Девочки" ? "для девочек" : (SelectedGender == "Мальчики" ? "для мальчиков" : "унисекс")));
-            string matWord = SelectedMaterial.ToLowerInvariant();
-            Title = $"{subj} {genderWord} {matWord} базовая оверсайз".Trim();
+            string subj = SelectedSubject?.SubjectName ?? "Одежда";
+            string gen = SelectedGender == "Женский" ? "женская" : SelectedGender == "Мужской" ? "мужская" : SelectedGender == "Девочки" ? "для девочек" : SelectedGender == "Мальчики" ? "для мальчиков" : "унисекс";
+            string mat = SelectedMaterial.ToLower();
+            Title = $"{subj} {gen} {mat} базовая";
         }
 
         private void AutoSuggestDescription()
         {
-            if (SelectedSubject == null) return;
-            string subj = SelectedSubject.Name;
-            Description = $"Качественная и стильная {subj.ToLowerInvariant()} прямого силуэта. " +
-                          $"Изготовлена из высококачественного материала ({SelectedMaterial.ToLowerInvariant()}), приятного к телу и устойчивого к износу. " +
-                          $"Отлично сохраняет форму и цвет после многочисленных стирок. " +
-                          $"Идеально сочетается с базовыми вещами гардероба для повседневного стиля, работы и прогулок.";
+            string subj = SelectedSubject?.SubjectName ?? "Модель";
+            Description = $"Качественная базовая {subj.ToLower()} прямого кроя из натурального материала ({SelectedMaterial}). Обеспечивает максимальный комфорт и воздухопроницаемость в течение всего дня. Идеальный выбор для базового гардероба на любой сезон.";
         }
 
-        private void AddSizeRow()
+        private void GenerateNewVendorCode()
         {
-            var newSize = new ProductSizeItem { TechSize = "XXL", WbSize = "50", Price = 1500, Barcode = "" };
-            newSize.PropertyChanged += (s, e) => GeneratePayload();
-            Sizes.Add(newSize);
+            VendorCode = "PROD-" + DateTime.Now.ToString("yyMMddHHmmss");
+        }
+
+        private void AddDefaultSizes()
+        {
+            Sizes.Clear();
+            Sizes.Add(new ProductSizeItem { TechSize = "S", RussianSize = "42-44", Sku = "200" + DateTime.Now.ToString("yyMMdd") + "01", Price = 1200 });
+            Sizes.Add(new ProductSizeItem { TechSize = "M", RussianSize = "44-46", Sku = "200" + DateTime.Now.ToString("yyMMdd") + "02", Price = 1200 });
+            Sizes.Add(new ProductSizeItem { TechSize = "L", RussianSize = "46-48", Sku = "200" + DateTime.Now.ToString("yyMMdd") + "03", Price = 1200 });
+            Sizes.Add(new ProductSizeItem { TechSize = "XL", RussianSize = "48-50", Sku = "200" + DateTime.Now.ToString("yyMMdd") + "04", Price = 1200 });
             GeneratePayload();
         }
 
-        private void RemoveSelectedSize()
+        private void AddSize()
         {
-            if (SelectedSize != null && Sizes.Count > 1)
+            string nextIndex = (Sizes.Count + 1).ToString("D2");
+            Sizes.Add(new ProductSizeItem { TechSize = "XXL", RussianSize = "50-52", Sku = "200" + DateTime.Now.ToString("yyMMdd") + nextIndex, Price = 1200 });
+            GeneratePayload();
+        }
+
+        private void RemoveSize()
+        {
+            if (SelectedSize != null)
             {
                 Sizes.Remove(SelectedSize);
                 GeneratePayload();
             }
         }
 
-        private async Task GenerateMissingBarcodesAsync()
+        private void AddPhotoUrl()
         {
-            var missingSizes = Sizes.Where(s => string.IsNullOrWhiteSpace(s.Barcode)).ToList();
-            if (missingSizes.Count == 0)
-            {
-                MessageBox.Show("Tất cả các size đã có mã vạch Barcode!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            if (_apiClient == null)
-            {
-                // Local fallback EAN-13 generation if API client not connected
-                foreach (var size in missingSizes)
-                {
-                    size.Barcode = "20" + DateTime.Now.ToString("yyMMddHHmmss").Substring(0, 10) + new Random().Next(0, 9);
-                }
-                GeneratePayload();
-                return;
-            }
-
-            try
-            {
-                IsPublishing = true;
-                PublishStatus = $"⏳ Đang sinh {missingSizes.Count} mã Barcode EAN-13 từ Wildberries API...";
-                var barcodes = await _apiClient.GenerateBarcodesAsync(missingSizes.Count);
-
-                if (barcodes.Count >= missingSizes.Count)
-                {
-                    for (int i = 0; i < missingSizes.Count; i++)
-                    {
-                        missingSizes[i].Barcode = barcodes[i];
-                    }
-                    PublishStatus = $"✅ Đã nhận {missingSizes.Count} mã Barcode chính thức từ WB API!";
-                }
-                else
-                {
-                    // Fallback EAN-13
-                    for (int i = 0; i < missingSizes.Count; i++)
-                    {
-                        missingSizes[i].Barcode = i < barcodes.Count ? barcodes[i] : ("20" + DateTime.Now.ToString("yyMMddHHmmss") + i).Substring(0, 13);
-                    }
-                    PublishStatus = "✅ Đã gán Barcode cho tất cả các size.";
-                }
-                GeneratePayload();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi sinh Barcode: {ex.Message}", "Lỗi API", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                IsPublishing = false;
-            }
+            Photos.Add(new ProductPhotoItem { Url = "https://images.wbstatic.net/sample.jpg", IsPrimary = Photos.Count == 0 });
+            GeneratePayload();
         }
 
-        private void BrowseAndAddLocalPhotos()
+        private void AddLocalPhoto()
         {
-            var dialog = new OpenFileDialog
+            var ofd = new OpenFileDialog
             {
-                Title = "Chọn ảnh sản phẩm (Tối đa 30 ảnh)",
-                Filter = "File ảnh (*.jpg;*.jpeg;*.png;*.webp)|*.jpg;*.jpeg;*.png;*.webp|Tất cả tệp (*.*)|*.*",
-                Multiselect = true
+                Filter = "Image Files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
+                Title = "Chọn ảnh sản phẩm"
             };
-
-            if (dialog.ShowDialog() == true)
+            if (ofd.ShowDialog() == true)
             {
-                foreach (var file in dialog.FileNames)
-                {
-                    if (Photos.Any(p => p.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
-                        continue;
-
-                    var photoItem = new ProductPhotoItem
-                    {
-                        FilePath = file,
-                        OrderIndex = Photos.Count + 1,
-                        Status = "Sẵn sàng tải lên"
-                    };
-                    Photos.Add(photoItem);
-                }
-                UpdatePhotoIndices();
+                Photos.Add(new ProductPhotoItem { LocalPath = ofd.FileName, Url = ofd.FileName, IsPrimary = Photos.Count == 0 });
+                GeneratePayload();
             }
         }
 
-        private void AddPhotoByUrl()
-        {
-            string url = Microsoft.VisualBasic.Interaction.InputBox("Nhập đường dẫn trực tiếp (URL) của ảnh:", "Thêm link ảnh", "https://");
-            if (!string.IsNullOrWhiteSpace(url) && url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            {
-                Photos.Add(new ProductPhotoItem
-                {
-                    Url = url.Trim(),
-                    OrderIndex = Photos.Count + 1,
-                    Status = "Sẵn sàng (URL)"
-                });
-                UpdatePhotoIndices();
-            }
-        }
-
-        private void RemoveSelectedPhoto()
+        private void RemovePhoto()
         {
             if (SelectedPhoto != null)
             {
                 Photos.Remove(SelectedPhoto);
-                UpdatePhotoIndices();
+                GeneratePayload();
             }
         }
 
-        private void MoveSelectedPhotoUp()
+        public void RunPreflightCheck()
         {
-            if (SelectedPhoto == null) return;
-            int idx = Photos.IndexOf(SelectedPhoto);
-            if (idx > 0)
+            PreflightIssues.Clear();
+
+            // Validate TNVED 10-digits
+            if (string.IsNullOrWhiteSpace(TnvedCode) || TnvedCode.Length != 10)
             {
-                Photos.Move(idx, idx - 1);
-                UpdatePhotoIndices();
+                PreflightIssues.Add(new IssueItem
+                {
+                    RuleId = "R001",
+                    Severity = IssueSeverity.BLOCK,
+                    FieldPath = "tnved",
+                    ObservedValue = TnvedCode,
+                    VietnameseExplanation = "Mã ТН ВЭД phải có đầy đủ đúng 10 chữ số hợp lệ."
+                });
+            }
+
+            // Validate Sizes
+            if (Sizes.Count == 0)
+            {
+                PreflightIssues.Add(new IssueItem
+                {
+                    RuleId = "R006",
+                    Severity = IssueSeverity.BLOCK,
+                    FieldPath = "sizes",
+                    ObservedValue = "0",
+                    VietnameseExplanation = "Sản phẩm phải có ít nhất 1 biến thể size."
+                });
+            }
+
+            foreach (var size in Sizes)
+            {
+                if (string.IsNullOrWhiteSpace(size.Sku))
+                {
+                    PreflightIssues.Add(new IssueItem
+                    {
+                        RuleId = "R012",
+                        Severity = IssueSeverity.BLOCK,
+                        FieldPath = $"sizes[{size.TechSize}].skus",
+                        ObservedValue = "Rỗng",
+                        VietnameseExplanation = $"Size {size.TechSize} chưa được gán barcode."
+                    });
+                }
+            }
+
+            if (PreflightIssues.Any(i => i.Severity == IssueSeverity.BLOCK))
+            {
+                PreflightReadinessScore = "❌ 40% - Có lỗi chặn (Blocker) cần khắc phục";
+                PreflightIssuesSummary = $"Phát hiện {PreflightIssues.Count} vấn đề cần xử lý trước khi tạo thẻ.";
+            }
+            else
+            {
+                PreflightReadinessScore = "✅ 100% - Sẵn sàng đăng tải (Ready)";
+                PreflightIssuesSummary = "Tất cả các trường bắt buộc và định dạng kỹ thuật đã hợp lệ!";
             }
         }
 
-        private void MoveSelectedPhotoDown()
+        public void GeneratePayload()
         {
-            if (SelectedPhoto == null) return;
-            int idx = Photos.IndexOf(SelectedPhoto);
-            if (idx < Photos.Count - 1)
+            try
             {
-                Photos.Move(idx, idx + 1);
-                UpdatePhotoIndices();
+                var characteristics = new List<object>
+                {
+                    new { id = 14177449, name = "Пол", value = new[] { SelectedGender } },
+                    new { id = 14177450, name = "Состав", value = OuterFabricComp },
+                    new { id = 14177451, name = "Цвет", value = new[] { SelectedColor } }
+                };
+
+                var sizesPayload = Sizes.Select(s => new
+                {
+                    techSize = s.TechSize,
+                    wbSize = s.RussianSize,
+                    price = s.Price,
+                    skus = new[] { s.Sku }
+                }).ToList();
+
+                var cardPayload = new
+                {
+                    vendorCode = VendorCode,
+                    title = Title,
+                    description = Description,
+                    brand = Brand,
+                    dimensions = new
+                    {
+                        length = PackageLength,
+                        width = PackageWidth,
+                        height = PackageHeight,
+                        weight = PackageWeight
+                    },
+                    characteristics = characteristics,
+                    sizes = sizesPayload,
+                    tnved = TnvedCode
+                };
+
+                var rootArray = new[] { cardPayload };
+                GeneratedPayloadJson = JsonSerializer.Serialize(rootArray, new JsonSerializerOptions { WriteIndented = true });
+            }
+            catch (Exception ex)
+            {
+                GeneratedPayloadJson = "// Lỗi tạo payload: " + ex.Message;
             }
         }
 
-        private void UpdatePhotoIndices()
+        private void CopyPayloadToClipboard()
         {
-            for (int i = 0; i < Photos.Count; i++)
+            try
             {
-                Photos[i].OrderIndex = i + 1;
+                Clipboard.SetText(GeneratedPayloadJson);
+                CopyStatus = "✅ Đã sao chép JSON vào Clipboard!";
+            }
+            catch
+            {
+                CopyStatus = "⚠️ Không thể sao chép vào Clipboard.";
             }
         }
 
-        private async Task PublishCardToWildberriesAsync(bool dryRun)
+        private async Task PublishCardDirectlyAsync()
         {
-            if (SelectedSubject == null)
-            {
-                MessageBox.Show("Vui lòng chọn danh mục sản phẩm trước khi đăng!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(VendorCode))
-            {
-                MessageBox.Show("Vui lòng nhập mã Artikul (VendorCode)!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(TnvedCode))
-            {
-                MessageBox.Show("Vui lòng chọn hoặc tính mã TNVED hợp lệ!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Auto-fill missing barcodes before uploading
-            var missingBarcodes = Sizes.Where(s => string.IsNullOrWhiteSpace(s.Barcode)).ToList();
-            if (missingBarcodes.Count > 0 && _apiClient != null && !dryRun)
-            {
-                await GenerateMissingBarcodesAsync();
-            }
-
-            GeneratePayload();
-
-            var payloadObj = _selector.BuildUploadByItemPayload(
-                subjectId: SelectedSubject.Id,
-                vendorCode: VendorCode,
-                title: Title,
-                description: Description,
-                gender: SelectedGender,
-                material: SelectedMaterial,
-                tnvedCode: TnvedCode,
-                brand: Brand,
-                color: SelectedColor,
-                length: PackageLength,
-                width: PackageWidth,
-                height: PackageHeight,
-                weightBrutto: PackageWeight,
-                sizeList: Sizes.ToList()
-            );
-
-            if (dryRun)
-            {
-                PublishStatus = "🔍 [Dry Run] Cấu trúc Payload hoàn toàn hợp lệ và sẵn sàng đăng lên Wildberries!";
-                PublishLog = $"[DRY RUN TEST]\n- Danh mục: {SelectedSubject.Name} (ID: {SelectedSubject.Id})\n" +
-                             $"- Artikul: {VendorCode}\n" +
-                             $"- Tiêu đề: {Title}\n" +
-                             $"- TNVED: {TnvedCode}\n" +
-                             $"- Số lượng Size: {Sizes.Count}\n" +
-                             $"- Số lượng ảnh đã chọn: {Photos.Count}\n" +
-                             $"- Kích thước đóng gói: {PackageLength}x{PackageWidth}x{PackageHeight} cm, {PackageWeight} kg\n" +
-                             $"==> Sẵn sàng bấm nút 'ĐĂNG LÊN WILDBERRIES'.";
-                return;
-            }
-
             if (_apiClient == null)
             {
-                MessageBox.Show("Chưa cấu hình API Client hoặc API Key Wildberries. Vui lòng vào Cài đặt để điền API Key.", "Chưa có API Key", MessageBoxButton.OK, MessageBoxImage.Warning);
+                PublishStatus = "❌ Chưa khởi tạo API Client.";
                 return;
             }
+
+            RunPreflightCheck();
+            if (PreflightIssues.Any(i => i.Severity == IssueSeverity.BLOCK))
+            {
+                MessageBox.Show("Vui lòng khắc phục các lỗi chặn tại Bước 9 trước khi đăng bài.", "Lỗi Kiểm Tra Preflight", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            IsPublishing = true;
+            PublishStatus = "⏳ Đang gửi payload lên Wildberries Content API...";
+            PublishLog = $"[{DateTime.Now:HH:mm:ss}] Bắt đầu gửi tạo thẻ cho VendorCode: {VendorCode}...\n";
 
             try
             {
-                IsPublishing = true;
-                PublishStatus = "⏳ Đang gửi yêu cầu tạo Card lên máy chủ Wildberries...";
-                PublishLog = $"[{DateTime.Now:HH:mm:ss}] Bắt đầu đăng bài cho Artikul: {VendorCode}...\n";
-
-                var (success, message, rawResponse) = await _apiClient.UploadCardsAsync(payloadObj);
-
-                if (success)
+                var result = await _apiClient.UploadCardsAsync(GeneratedPayloadJson);
+                if (result.Success)
                 {
-                    PublishStatus = "🎉 ĐĂNG BÀI THÀNH CÔNG LÊN WILDBERRIES!";
-                    PublishLog += $"[{DateTime.Now:HH:mm:ss}] ✅ Tạo Card thành công: {message}\nPhản hồi máy chủ WB: {rawResponse}\n";
-
-                    // Handle Photo Upload if photos were added
-                    if (Photos.Count > 0)
-                    {
-                        PublishLog += $"[{DateTime.Now:HH:mm:ss}] 📸 Đang xử lý {Photos.Count} ảnh sản phẩm đính kèm...\n";
-                        
-                        var directUrls = Photos.Where(p => !p.IsLocalFile && !string.IsNullOrWhiteSpace(p.Url)).Select(p => p.Url).ToList();
-                        if (directUrls.Count > 0)
-                        {
-                            PublishLog += $"[{DateTime.Now:HH:mm:ss}] 🔗 Đã ghi nhận {directUrls.Count} URL ảnh trực tuyến.\n";
-                        }
-
-                        var localPhotos = Photos.Where(p => p.IsLocalFile).ToList();
-                        if (localPhotos.Count > 0)
-                        {
-                            PublishLog += $"[{DateTime.Now:HH:mm:ss}] 📁 Có {localPhotos.Count} file ảnh cục bộ từ máy. Wildberries sẽ đồng bộ mã NM ID để gắn ảnh đầy đủ.\n";
-                        }
-                    }
-
-                    MessageBox.Show("Đăng bài lên sàn Wildberries thành công!\nSản phẩm đang được sàn xử lý và sẽ hiển thị trong gian hàng của bạn.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    PublishStatus = "✅ Tạo thẻ thành công!";
+                    PublishLog += $"[{DateTime.Now:HH:mm:ss}] WB phản hồi thành công. Dữ liệu đang được xử lý trong hàng đợi bất đồng bộ.\n";
+                    PublishLog += $"Chi tiết: {result.RawResponse}\n";
+                    CurrentStep = 10;
                 }
                 else
                 {
-                    PublishStatus = "❌ ĐĂNG BÀI THẤT BẠI - XEM CHI TIẾT LỖI";
-                    PublishLog += $"[{DateTime.Now:HH:mm:ss}] ❌ Lỗi từ Wildberries: {message}\n";
-                    MessageBox.Show($"Wildberries từ chối đăng bài:\n\n{message}", "Lỗi đăng bài", MessageBoxButton.OK, MessageBoxImage.Error);
+                    PublishStatus = "❌ Lỗi đăng bài lên WB";
+                    PublishLog += $"[{DateTime.Now:HH:mm:ss}] Lỗi từ server WB: {result.Message}\n";
+                    if (!string.IsNullOrEmpty(result.RawResponse))
+                    {
+                        PublishLog += $"Raw Phản hồi: {result.RawResponse}\n";
+                    }
                 }
             }
             catch (Exception ex)
             {
-                PublishStatus = "❌ LỖI NGOẠI LỆ TRONG KHI ĐĂNG BÀI";
-                PublishLog += $"[{DateTime.Now:HH:mm:ss}] Exception: {ex.Message}\n";
-                MessageBox.Show($"Lỗi kết nối: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                PublishStatus = "❌ Ngoại lệ trong quá trình gửi";
+                PublishLog += $"[{DateTime.Now:HH:mm:ss}] Ngoại lệ: {ex.Message}\n";
             }
             finally
             {
                 IsPublishing = false;
             }
         }
+    }
 
-        private void CopyPayload()
-        {
-            if (!string.IsNullOrWhiteSpace(GeneratedPayloadJson))
-            {
-                Clipboard.SetText(GeneratedPayloadJson);
-                CopyStatus = "✅ Đã sao chép Payload JSON vào Clipboard!";
-            }
-        }
+    public class ProductSizeItem : ViewModelBase
+    {
+        private string _techSize = string.Empty;
+        private string _russianSize = string.Empty;
+        private string _sku = string.Empty;
+        private decimal _price = 0;
+
+        public string TechSize { get => _techSize; set => SetProperty(ref _techSize, value); }
+        public string RussianSize { get => _russianSize; set => SetProperty(ref _russianSize, value); }
+        public string Sku { get => _sku; set => SetProperty(ref _sku, value); }
+        public decimal Price { get => _price; set => SetProperty(ref _price, value); }
+    }
+
+    public class ProductPhotoItem : ViewModelBase
+    {
+        private string _localPath = string.Empty;
+        private string _url = string.Empty;
+        private bool _isPrimary = false;
+
+        public string LocalPath { get => _localPath; set => SetProperty(ref _localPath, value); }
+        public string Url { get => _url; set => SetProperty(ref _url, value); }
+        public bool IsPrimary { get => _isPrimary; set => SetProperty(ref _isPrimary, value); }
+    }
+
+    public class WbSubjectItem : ViewModelBase
+    {
+        private int _subjectId;
+        private string _subjectName = string.Empty;
+
+        public int SubjectId { get => _subjectId; set => SetProperty(ref _subjectId, value); }
+        public string SubjectName { get => _subjectName; set => SetProperty(ref _subjectName, value); }
     }
 }

@@ -44,14 +44,36 @@ namespace WbTnvedManager.Services
             var issues = report.Issues;
 
             var card = ctx.WbCard;
-            var currentTnved = card.CurrentTnved ?? string.Empty;
-            var currentGender = card.CurrentGender ?? string.Empty;
-            var currentMaterial = card.CurrentMaterial ?? string.Empty;
-            var title = card.Title ?? string.Empty;
-            var vendorCode = card.VendorCode ?? string.Empty;
+            var currentTnved = card.CurrentTnved?.Trim() ?? string.Empty;
+            var currentGender = card.CurrentGender?.Trim() ?? string.Empty;
+            var currentMaterial = card.CurrentMaterial?.Trim() ?? string.Empty;
+            var title = card.Title?.Trim() ?? string.Empty;
+            var vendorCode = card.VendorCode?.Trim() ?? string.Empty;
 
             // -------------------------------------------------------------
-            // Rule R002: Context & Account
+            // R001: Evidence provenance / AI-only claims
+            // -------------------------------------------------------------
+            if (ctx.Model != null && ctx.Model.Components.Any(c => c.EvidenceState == VerificationState.UNVERIFIED))
+            {
+                issues.Add(new IssueItem
+                {
+                    RuleId = "R001",
+                    RuleTitle = "Thành phần cấu tạo chưa được xác thực bằng chứng từ",
+                    TargetEntityId = card.NmId.ToString(),
+                    FieldPath = "product.components",
+                    FieldNameVi = "Bằng chứng thành phần",
+                    FieldNameRu = "Доказательства состава",
+                    Severity = IssueSeverity.MANUAL_REVIEW,
+                    ObservedValue = "UNVERIFIED",
+                    ExpectedConstraint = "Nhãn gốc hoặc biên bản thử nghiệm",
+                    VietnameseExplanation = "Thành phần vải được nhập tự động hoặc chưa được duyệt từ nhãn hàng thật. Cần đối chiếu chứng từ kiểm nghiệm.",
+                    EvidenceSource = "Product Evidence",
+                    SuggestedAction = SuggestedActionKind.REVIEW
+                });
+            }
+
+            // -------------------------------------------------------------
+            // R002: Context & Account Isolation
             // -------------------------------------------------------------
             if (string.IsNullOrEmpty(ctx.Account.SellerCountry) || ctx.Account.SellerCountry != "RU")
             {
@@ -74,7 +96,7 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R003: Category Schema & Required Fields
+            // R003: Category Schema & Required Fields
             // -------------------------------------------------------------
             if (card.SubjectId <= 0 && string.IsNullOrWhiteSpace(card.SubjectName))
             {
@@ -97,7 +119,7 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R010: Full 10-digit TNVED Format
+            // R010: Full 10-digit TNVED Format
             // -------------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(currentTnved) && !TnvedClassificationEngine.IsValid10DigitFormat(currentTnved))
             {
@@ -121,7 +143,7 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R012 & R013: Knitted vs Woven & Chapter 61/62 consistency
+            // R012 & R013: Knitted vs Woven & Chapter 61/62 consistency
             // -------------------------------------------------------------
             var detectedKnit = _selector.InferKnitState(title + " " + card.SubjectName) ?? "knit";
             var detectedFamily = _selector.InferFamily(card.SubjectName + " " + title);
@@ -151,7 +173,7 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R015 & R016: Intended Audience & Gender & Unisex
+            // R015 & R016: Intended Audience & Gender & Unisex
             // -------------------------------------------------------------
             var detectedGender = _selector.InferGender(title + " " + card.SubjectName);
             if (string.IsNullOrWhiteSpace(currentGender) || currentGender.Equals("Детский", StringComparison.OrdinalIgnoreCase))
@@ -180,7 +202,37 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R030 & R031: GTIN & Barcode Structure & Registration
+            // R020 & R021: Composition per component
+            // -------------------------------------------------------------
+            if (ctx.Model != null && ctx.Model.Components.Count > 0)
+            {
+                var compResults = CompositionValidator.ValidateAllComponents(ctx.Model.Components);
+                foreach (var cRes in compResults)
+                {
+                    if (!cRes.IsValid)
+                    {
+                        issues.Add(new IssueItem
+                        {
+                            RuleId = "R020",
+                            RuleTitle = "Tổng tỷ lệ thành phần vải khác 100%",
+                            TargetEntityId = card.NmId.ToString(),
+                            FieldPath = $"components.{cRes.ComponentType}",
+                            FieldNameVi = $"Thành phần ({cRes.ComponentType})",
+                            FieldNameRu = $"Состав ({cRes.ComponentType})",
+                            Severity = IssueSeverity.BLOCK,
+                            ObservedValue = $"{cRes.TotalPercentage}%",
+                            ExpectedConstraint = "100%",
+                            VietnameseExplanation = cRes.ErrorMessage,
+                            EvidenceSource = "Nhãn thành phần thật",
+                            SuggestedAction = SuggestedActionKind.REVIEW,
+                            BlockedOperations = new List<OperationKind> { OperationKind.CREATE_WB_CONTENT, OperationKind.APPLY_WB_FIX }
+                        });
+                    }
+                }
+            }
+
+            // -------------------------------------------------------------
+            // R030 & R031: GTIN & Barcode Structure & Registration
             // -------------------------------------------------------------
             if (card.Sizes != null && card.Sizes.Count > 0)
             {
@@ -225,7 +277,29 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R060: Content Length Limits (Title <= 60 chars)
+            // R040: Conformity Documents (DS / SS / SGR)
+            // -------------------------------------------------------------
+            if (ctx.Documents.Count == 0 && (card.SubjectId > 0 || !string.IsNullOrEmpty(card.SubjectName)))
+            {
+                issues.Add(new IssueItem
+                {
+                    RuleId = "R040",
+                    RuleTitle = "Chưa liên kết hồ sơ công bố hợp quy (ДС/СС/СГР)",
+                    TargetEntityId = card.NmId.ToString(),
+                    FieldPath = "documents",
+                    FieldNameVi = "Hồ sơ hợp quy",
+                    FieldNameRu = "Разрешительные документы (РД)",
+                    Severity = IssueSeverity.MANUAL_REVIEW,
+                    ObservedValue = "(Chưa có)",
+                    ExpectedConstraint = "ДС theo ТР ТС 017/2011 hoặc ТР ТС 007/2011",
+                    VietnameseExplanation = "Sản phẩm dệt may thuộc diện bắt buộc có bản công bố hợp quy ДС hoặc chứng nhận СС khi lưu thông tại Nga.",
+                    EvidenceSource = "ТР ТС 017/2011 / CRPT",
+                    SuggestedAction = SuggestedActionKind.EXTERNAL
+                });
+            }
+
+            // -------------------------------------------------------------
+            // R060: Content Length Limits (Title <= 60 chars)
             // -------------------------------------------------------------
             if (!string.IsNullOrEmpty(title) && title.Length > 60)
             {
@@ -250,7 +324,7 @@ namespace WbTnvedManager.Services
             }
 
             // -------------------------------------------------------------
-            // Rule R063: Missing Dimensions or Weight
+            // R063: Missing Dimensions or Weight
             // -------------------------------------------------------------
             if (card.Dimensions.HasValue && card.Dimensions.Value.ValueKind == JsonValueKind.Object)
             {
