@@ -11,6 +11,11 @@ namespace WbTnvedManager.Models
         public string LegalEntityInn { get; set; } = "7707083893";
         public string NationalCatalogApiKey { get; set; } = string.Empty;
         public string NationalCatalogBaseUrl { get; set; } = "https://api.catalog.crpt.ru";
+        public string OmsId { get; set; } = string.Empty;
+        public string OmsConnection { get; set; } = string.Empty;
+        public string KizReleaseMethod { get; set; } = "Sản xuất tại Nga";
+        public string DigitalSignatureInfo { get; set; } = string.Empty;
+        public string DigitalSignatureStatus { get; set; } = "CHƯA KIỂM TRA";
         public int RateLimitDelayMs { get; set; } = 350;
         public int BatchSize { get; set; } = 50;
         public bool AutoCheckErrors { get; set; } = true;

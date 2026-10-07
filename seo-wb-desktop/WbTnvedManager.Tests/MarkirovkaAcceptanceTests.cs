@@ -9,6 +9,7 @@ using WbTnvedManager.Data;
 using WbTnvedManager.Models;
 using WbTnvedManager.Services;
 using WbTnvedManager.Services.Resolvers;
+using WbTnvedManager.ViewModels;
 
 namespace WbTnvedManager.Tests
 {
@@ -220,6 +221,27 @@ namespace WbTnvedManager.Tests
             Assert.Equal(MarketplaceCheckState.PENDING, prop.MarketplaceCheck); // Section 23: NĐ 821 kiểm tra 180 ngày không thể coi là hoàn tất ngay lập tức
         }
 
+        [Fact]
+        public void T22_CryptoProCertificateVerificationAndZnackSettings()
+        {
+            var certService = new CryptoProCertificateService();
+            var result = certService.VerifySignature("4f9f19abc66f38829ca6ca9e50b191dd7d1f3d91 / INN 622903986965 / Hết hạn: 26.04.2027");
+
+            Assert.True(result.IsValid);
+            Assert.Equal("VERIFIED", result.StatusText);
+            Assert.Equal("622903986965", result.ExtractedInn);
+
+            var settings = new AppSettings();
+            var vm = new SettingsViewModel(settings, new FakeWbApiClientForTests(), null, certService);
+            Assert.Equal("ede7e333-ee03-426b-868b-b18c84d08e1e", vm.OmsId);
+            Assert.Equal("4491fc8a-63bf-4df3-a277-a16f4b989cde", vm.OmsConnection);
+            Assert.Equal("Sản xuất tại Nga", vm.KizReleaseMethod);
+            Assert.Contains("622903986965", vm.DigitalSignatureInfo);
+
+            vm.CheckDigitalSignatureCommand.Execute(null);
+            Assert.Equal("VERIFIED", vm.DigitalSignatureStatus);
+        }
+
         private class FakeWbApiClientForTests : IWbApiClient
         {
             public bool HasApiKey => true;
@@ -228,7 +250,7 @@ namespace WbTnvedManager.Tests
             public Task<List<WbCardItem>> GetAllCardsAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new List<WbCardItem>());
             public Task<(bool Success, string Message)> UpdateCardsBatchAsync(List<WbCardItem> cardsToUpdate, CancellationToken cancellationToken = default) => Task.FromResult((true, "OK"));
             public Task<List<WbCardErrorItem>> GetCardErrorsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbCardErrorItem>());
-            public Task<List<WbSubjectItem>> GetSubjectsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbSubjectItem>());
+            public Task<List<Models.WbSubjectItem>> GetSubjectsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Models.WbSubjectItem>());
             public Task<List<WbDirectoryTnvedItem>> GetTnvedDirectoryAsync(int? subjectId = null, string? search = null, CancellationToken cancellationToken = default) => Task.FromResult(new List<WbDirectoryTnvedItem>());
             public Task<List<WbDirectoryTnvedItem>> GetAllTnvedDirectoryAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbDirectoryTnvedItem>());
             public Task<List<string>> GenerateBarcodesAsync(int count = 1, CancellationToken cancellationToken = default) => Task.FromResult(new List<string> { "2000000000001" });

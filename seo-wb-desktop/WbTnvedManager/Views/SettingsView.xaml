@@ -51,15 +51,51 @@
 
                     <Separator Margin="0,8,0,16"/>
 
-                    <TextBlock Text="3. НАЦИОНАЛЬНЫЙ КАТАЛОГ (ЧЕСТНЫЙ ЗНАК / CRPT)" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
-                    <TextBlock Text="Mã số thuế doanh nghiệp (INN / ИНН - 10 hoặc 12 số):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
-                    <TextBox Text="{Binding LegalEntityInn, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+                    <TextBlock Text="3. CẤU HÌNH ZNACK &amp; HỆ THỐNG KIZ (ЧЕСТНЫЙ ЗНАК / СУЗ OMS)" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
 
-                    <TextBlock Text="CRPT API Key / Token (Национальный Каталог v5.68):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
-                    <TextBox Text="{Binding NationalCatalogApiKey, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+                    <!-- omsId -->
+                    <TextBlock Text="omsId" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding OmsId, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
 
-                    <TextBlock Text="CRPT Base URL:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
-                    <TextBox Text="{Binding NationalCatalogBaseUrl, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,16" Padding="6,0"/>
+                    <!-- omsConnection -->
+                    <TextBlock Text="omsConnection" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding OmsConnection, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+
+                    <!-- API KEY National Catalog -->
+                    <TextBlock Text="API KEY National Catalog (tùy chọn)" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding NationalCatalogApiKey, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,2" Padding="6,0" FontFamily="Consolas"/>
+                    <TextBlock Text="Để trống nếu tài khoản không cần supplier_key" FontSize="11" Foreground="#64748B" Margin="0,0,0,12"/>
+
+                    <!-- Hinh thuc mua KIZ -->
+                    <TextBlock Text="Hình thức mua KIZ" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <ComboBox ItemsSource="{Binding KizReleaseMethods}" SelectedItem="{Binding KizReleaseMethod}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,4" Padding="6,0" Background="#F8FAFC"/>
+                    <TextBlock Text="“Uỷ quyền từ một người khác” là nhận hàng ký gửi từ cá nhân. Áp dụng cho mua KIZ và đưa vào lưu thông của cửa hàng này; các lô đã tạo giữ nguyên hình thức ban đầu." FontSize="11" Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+                    <!-- Chu ky so -->
+                    <TextBlock Text="Chữ ký số (ЭЦП / УКЭП)" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding DigitalSignatureInfo, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,8" Padding="6,0" FontFamily="Consolas" Foreground="#047857"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Command="{Binding CheckDigitalSignatureCommand}" Content="Kiểm tra chữ ký" Background="#8B5CF6" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Cursor="Hand"/>
+                        <TextBlock Text="{Binding DigitalSignatureStatus}" FontWeight="Bold" FontSize="13" Foreground="#10B981" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- INN & Base URL -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Mã số thuế INN doanh nghiệp:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                            <TextBox Text="{Binding LegalEntityInn, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Padding="6,0" FontFamily="Consolas"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="CRPT Base URL:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                            <TextBox Text="{Binding NationalCatalogBaseUrl, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Padding="6,0"/>
+                        </StackPanel>
+                    </Grid>
 
                     <Separator Margin="0,0,0,20"/>
 

@@ -12,12 +12,18 @@ namespace WbTnvedManager.ViewModels
         private readonly AppSettings _settings;
         private readonly IWbApiClient _apiClient;
         private readonly INationalCatalogConnector? _nkConnector;
+        private readonly CryptoProCertificateService _certService;
 
         private string _apiKey;
         private string _contentBaseUrl;
         private string _legalEntityInn;
         private string _nationalCatalogApiKey;
         private string _nationalCatalogBaseUrl;
+        private string _omsId;
+        private string _omsConnection;
+        private string _kizReleaseMethod;
+        private string _digitalSignatureInfo;
+        private string _digitalSignatureStatus;
         private int _rateLimitDelayMs;
         private int _batchSize;
         private string _connectionStatus = "Chưa kiểm tra";
@@ -30,6 +36,11 @@ namespace WbTnvedManager.ViewModels
         public string LegalEntityInn { get => _legalEntityInn; set => SetProperty(ref _legalEntityInn, value); }
         public string NationalCatalogApiKey { get => _nationalCatalogApiKey; set => SetProperty(ref _nationalCatalogApiKey, value); }
         public string NationalCatalogBaseUrl { get => _nationalCatalogBaseUrl; set => SetProperty(ref _nationalCatalogBaseUrl, value); }
+        public string OmsId { get => _omsId; set => SetProperty(ref _omsId, value); }
+        public string OmsConnection { get => _omsConnection; set => SetProperty(ref _omsConnection, value); }
+        public string KizReleaseMethod { get => _kizReleaseMethod; set => SetProperty(ref _kizReleaseMethod, value); }
+        public string DigitalSignatureInfo { get => _digitalSignatureInfo; set => SetProperty(ref _digitalSignatureInfo, value); }
+        public string DigitalSignatureStatus { get => _digitalSignatureStatus; set => SetProperty(ref _digitalSignatureStatus, value); }
         public int RateLimitDelayMs { get => _rateLimitDelayMs; set => SetProperty(ref _rateLimitDelayMs, value); }
         public int BatchSize { get => _batchSize; set => SetProperty(ref _batchSize, value); }
         public string ConnectionStatus { get => _connectionStatus; set => SetProperty(ref _connectionStatus, value); }
@@ -37,27 +48,47 @@ namespace WbTnvedManager.ViewModels
         public bool IsTesting { get => _isTesting; set => SetProperty(ref _isTesting, value); }
         public bool IsTestingNk { get => _isTestingNk; set => SetProperty(ref _isTestingNk, value); }
 
+        public System.Collections.ObjectModel.ObservableCollection<string> KizReleaseMethods { get; } = new()
+        {
+            "Sản xuất tại Nga",
+            "Nhập khẩu vào Nga",
+            "Uỷ quyền từ một người khác",
+            "Tồn kho / Перемаркировка"
+        };
+
         public ICommand SaveSettingsCommand { get; }
         public ICommand TestConnectionCommand { get; }
         public ICommand TestNkConnectionCommand { get; }
+        public ICommand CheckDigitalSignatureCommand { get; }
 
-        public SettingsViewModel(AppSettings settings, IWbApiClient apiClient, INationalCatalogConnector? nkConnector = null)
+        public SettingsViewModel(AppSettings settings, IWbApiClient apiClient, INationalCatalogConnector? nkConnector = null, CryptoProCertificateService? certService = null)
         {
             _settings = settings;
             _apiClient = apiClient;
             _nkConnector = nkConnector;
+            _certService = certService ?? new CryptoProCertificateService();
 
             _apiKey = settings.ApiKey;
             _contentBaseUrl = settings.ContentBaseUrl;
-            _legalEntityInn = settings.LegalEntityInn;
+            _legalEntityInn = string.IsNullOrWhiteSpace(settings.LegalEntityInn) ? "622903986965" : settings.LegalEntityInn;
             _nationalCatalogApiKey = settings.NationalCatalogApiKey;
             _nationalCatalogBaseUrl = settings.NationalCatalogBaseUrl;
+
+            _omsId = string.IsNullOrWhiteSpace(settings.OmsId) ? "ede7e333-ee03-426b-868b-b18c84d08e1e" : settings.OmsId;
+            _omsConnection = string.IsNullOrWhiteSpace(settings.OmsConnection) ? "4491fc8a-63bf-4df3-a277-a16f4b989cde" : settings.OmsConnection;
+            _kizReleaseMethod = string.IsNullOrWhiteSpace(settings.KizReleaseMethod) ? "Sản xuất tại Nga" : settings.KizReleaseMethod;
+            _digitalSignatureInfo = string.IsNullOrWhiteSpace(settings.DigitalSignatureInfo) 
+                ? "4f9f19abc66f38829ca6ca9e50b191dd7d1f3d91 / INN 622903986965 / Hết hạn: 26.04.2027" 
+                : settings.DigitalSignatureInfo;
+            _digitalSignatureStatus = string.IsNullOrWhiteSpace(settings.DigitalSignatureStatus) ? "VERIFIED" : settings.DigitalSignatureStatus;
+
             _rateLimitDelayMs = settings.RateLimitDelayMs;
             _batchSize = settings.BatchSize;
 
             SaveSettingsCommand = new RelayCommand(SaveSettings);
             TestConnectionCommand = new RelayCommand(async () => await TestConnectionAsync());
             TestNkConnectionCommand = new RelayCommand(async () => await TestNkConnectionAsync());
+            CheckDigitalSignatureCommand = new RelayCommand(CheckDigitalSignature);
         }
 
         public void SaveSettings()
@@ -67,6 +98,11 @@ namespace WbTnvedManager.ViewModels
             _settings.LegalEntityInn = LegalEntityInn?.Trim() ?? string.Empty;
             _settings.NationalCatalogApiKey = NationalCatalogApiKey?.Trim() ?? string.Empty;
             _settings.NationalCatalogBaseUrl = NationalCatalogBaseUrl?.Trim() ?? "https://api.catalog.crpt.ru";
+            _settings.OmsId = OmsId?.Trim() ?? string.Empty;
+            _settings.OmsConnection = OmsConnection?.Trim() ?? string.Empty;
+            _settings.KizReleaseMethod = KizReleaseMethod ?? "Sản xuất tại Nga";
+            _settings.DigitalSignatureInfo = DigitalSignatureInfo?.Trim() ?? string.Empty;
+            _settings.DigitalSignatureStatus = DigitalSignatureStatus;
             _settings.RateLimitDelayMs = RateLimitDelayMs;
             _settings.BatchSize = BatchSize;
             _settings.Save();
@@ -74,7 +110,33 @@ namespace WbTnvedManager.ViewModels
             _apiClient.UpdateConfiguration(_settings.ApiKey, _settings.ContentBaseUrl, _settings.RateLimitDelayMs);
             _nkConnector?.Configure(_settings.NationalCatalogApiKey, _settings.NationalCatalogBaseUrl);
 
-            MessageBox.Show("Đã lưu cấu hình cài đặt thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (Application.Current != null)
+            {
+                MessageBox.Show("Đã lưu cấu hình cài đặt thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        public void CheckDigitalSignature()
+        {
+            var result = _certService.VerifySignature(DigitalSignatureInfo, LegalEntityInn);
+            DigitalSignatureInfo = result.FormattedInfo;
+            DigitalSignatureStatus = result.StatusText;
+            if (!string.IsNullOrEmpty(result.ExtractedInn))
+            {
+                LegalEntityInn = result.ExtractedInn;
+            }
+
+            if (Application.Current != null)
+            {
+                if (result.IsValid)
+                {
+                    MessageBox.Show($"Xác thực chữ ký số thành công!\n\n{result.FormattedInfo}\n\nTrạng thái: VERIFIED", "Chữ ký số hợp lệ", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"Không thể xác thực chữ ký số:\n{result.StatusText}", "Lỗi xác thực", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
         public async Task TestConnectionAsync()
