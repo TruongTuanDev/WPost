@@ -19,6 +19,7 @@ namespace WbTnvedManager.ViewModels
         private readonly MatrixRepository _repository;
         private readonly TnvedSelectorService _selector;
         private readonly IWbApiClient? _apiClient;
+        private readonly ShopDocumentRepository _docRepository;
 
         // Wizard Step (1 to 12)
         private int _currentStep = 1;
@@ -217,6 +218,36 @@ namespace WbTnvedManager.ViewModels
             set => SetProperty(ref _nkSnapshotStatus, value);
         }
 
+        public ObservableCollection<ShopProfile> AvailableShops { get; } = new();
+        public ObservableCollection<ShopDocumentPackage> AvailablePackages { get; } = new();
+
+        private ShopProfile? _selectedShop;
+        public ShopProfile? SelectedShop
+        {
+            get => _selectedShop;
+            set
+            {
+                if (SetProperty(ref _selectedShop, value) && value != null)
+                {
+                    LoadShopDocumentPackages(value.ShopId);
+                }
+            }
+        }
+
+        private ShopDocumentPackage? _selectedDocumentPackage;
+        public ShopDocumentPackage? SelectedDocumentPackage
+        {
+            get => _selectedDocumentPackage;
+            set
+            {
+                if (SetProperty(ref _selectedDocumentPackage, value))
+                {
+                    UpdateDocumentValidationSummary();
+                    GeneratePayload();
+                }
+            }
+        }
+
         public string SelectedDocumentNumber
         {
             get => _selectedDocumentNumber;
@@ -308,11 +339,12 @@ namespace WbTnvedManager.ViewModels
         public ICommand PublishDirectCommand { get; }
         public ICommand RunPreflightCheckCommand { get; }
 
-        public CardBuilderViewModel(MatrixRepository repository, TnvedSelectorService selector, IWbApiClient? apiClient)
+        public CardBuilderViewModel(MatrixRepository repository, TnvedSelectorService selector, IWbApiClient? apiClient, ShopDocumentRepository? docRepository = null)
         {
             _repository = repository;
             _selector = selector;
             _apiClient = apiClient;
+            _docRepository = docRepository ?? new ShopDocumentRepository();
 
             NextStepCommand = new RelayCommand(() => { if (CurrentStep < 12) CurrentStep++; if (CurrentStep == 9) RunPreflightCheck(); });
             PrevStepCommand = new RelayCommand(() => { if (CurrentStep > 1) CurrentStep--; });
@@ -333,9 +365,54 @@ namespace WbTnvedManager.ViewModels
             PublishDirectCommand = new RelayCommand(async () => await PublishCardDirectlyAsync(), () => !IsPublishing);
             RunPreflightCheckCommand = new RelayCommand(RunPreflightCheck);
 
+            LoadShopsFromRepository();
             LoadSubjectsFromMatrix();
             AddDefaultSizes();
             GeneratePayload();
+        }
+
+        public void LoadShopsFromRepository()
+        {
+            AvailableShops.Clear();
+            var shops = _docRepository.GetShops();
+            foreach (var s in shops) AvailableShops.Add(s);
+
+            if (AvailableShops.Count > 0)
+            {
+                SelectedShop = AvailableShops.First();
+            }
+            else
+            {
+                UpdateDocumentValidationSummary();
+            }
+        }
+
+        public void LoadShopDocumentPackages(string shopId)
+        {
+            AvailablePackages.Clear();
+            var pkgs = _docRepository.GetPackagesByShop(shopId);
+            foreach (var p in pkgs) AvailablePackages.Add(p);
+
+            var autoPkg = AvailablePackages.FirstOrDefault(p => p.AutoApplyOnCreate) ?? AvailablePackages.FirstOrDefault();
+            SelectedDocumentPackage = autoPkg;
+        }
+
+        private void UpdateDocumentValidationSummary()
+        {
+            if (SelectedDocumentPackage != null)
+            {
+                SelectedDocumentNumber = SelectedDocumentPackage.DocNumber;
+                string dateStr = SelectedDocumentPackage.IsEndless
+                    ? $"{SelectedDocumentPackage.StartDate:dd.MM.yyyy} - Бессрочно"
+                    : $"{SelectedDocumentPackage.StartDate:dd.MM.yyyy} đến {SelectedDocumentPackage.EndDate:dd.MM.yyyy}";
+
+                DocumentValidationSummary = $"✅ Đã gán bộ: {SelectedDocumentPackage.PackageName} ({SelectedDocumentPackage.DocType}: {SelectedDocumentPackage.DocNumber}, Hiệu lực: {dateStr})";
+            }
+            else
+            {
+                SelectedDocumentNumber = string.Empty;
+                DocumentValidationSummary = "⚠️ Chưa có giấy tờ áp dụng cho shop này. Vui lòng cấu hình tại tab Hồ sơ chứng từ (РД).";
+            }
         }
 
         public void LoadSubjectsFromMatrix()
@@ -584,6 +661,26 @@ namespace WbTnvedManager.ViewModels
                     skus = new[] { s.Sku }
                 }).ToList();
 
+                object? documentsPayload = null;
+                if (SelectedDocumentPackage != null)
+                {
+                    documentsPayload = new
+                    {
+                        items = new[]
+                        {
+                            new
+                            {
+                                type = SelectedDocumentPackage.DocType,
+                                number = SelectedDocumentPackage.DocNumber,
+                                startDate = SelectedDocumentPackage.StartDate.ToString("dd.MM.yyyy"),
+                                endDate = SelectedDocumentPackage.IsEndless ? null : SelectedDocumentPackage.EndDate.ToString("dd.MM.yyyy"),
+                                isEndless = SelectedDocumentPackage.IsEndless
+                            }
+                        },
+                        excludeDocuments = false
+                    };
+                }
+
                 var cardPayload = new
                 {
                     vendorCode = VendorCode,
@@ -599,11 +696,16 @@ namespace WbTnvedManager.ViewModels
                     },
                     characteristics = characteristics,
                     sizes = sizesPayload,
-                    tnved = TnvedCode
+                    tnved = TnvedCode,
+                    documents = documentsPayload
                 };
 
                 var rootArray = new[] { cardPayload };
-                GeneratedPayloadJson = JsonSerializer.Serialize(rootArray, new JsonSerializerOptions { WriteIndented = true });
+                GeneratedPayloadJson = JsonSerializer.Serialize(rootArray, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
             }
             catch (Exception ex)
             {

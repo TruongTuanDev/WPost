@@ -92,11 +92,11 @@ namespace WbTnvedManager.ViewModels
             _errorTrackerService = new CardErrorTrackerService(_apiClient);
             _updateService = new AppUpdateService();
 
-            // Initialize Child ViewModels
-            CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
+            var docRepository = new ShopDocumentRepository();
+            CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient, docRepository);
             BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService, _safePipeline);
             MarkirovkaVM = new MarkirovkaViewModel(_apiClient, nkConnector, _safePipeline, _repository, new SellerAccount { INN = string.IsNullOrWhiteSpace(_settings.LegalEntityInn) ? "7707083893" : _settings.LegalEntityInn });
-            DocumentsVM = new DocumentsViewModel();
+            DocumentsVM = new DocumentsViewModel(_apiClient, docRepository);
             SyncCenterVM = new SyncCenterViewModel();
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);
             SettingsVM = new SettingsViewModel(_settings, _apiClient, nkConnector);

@@ -73,6 +73,9 @@ namespace WbTnvedManager.Models
         [JsonPropertyName("updatedAt")]
         public string? UpdatedAt { get; set; }
 
+        [JsonPropertyName("documents")]
+        public WbCardDocumentsContainer? Documents { get; set; }
+
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? AdditionalProperties { get; set; }
 
@@ -327,5 +330,50 @@ namespace WbTnvedManager.Models
         {
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    public class WbCardDocumentsContainer
+    {
+        [JsonPropertyName("items")]
+        public List<WbCardDocumentItem> Items { get; set; } = new();
+
+        [JsonPropertyName("excludeDocuments")]
+        public bool? ExcludeDocuments { get; set; }
+
+        [JsonPropertyName("overallVerdict")]
+        public string? OverallVerdict { get; set; }
+    }
+
+    public class WbCardDocumentItem
+    {
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "Декларация соответствия";
+
+        [JsonPropertyName("number")]
+        public string Number { get; set; } = string.Empty;
+
+        [JsonPropertyName("productNumber")]
+        public string? ProductNumber { get; set; }
+
+        [JsonPropertyName("tradeName")]
+        public string? TradeName { get; set; }
+
+        [JsonPropertyName("applicant")]
+        public string? Applicant { get; set; }
+
+        [JsonPropertyName("startDate")]
+        public string? StartDate { get; set; }
+
+        [JsonPropertyName("endDate")]
+        public string? EndDate { get; set; }
+
+        [JsonPropertyName("isEndless")]
+        public bool IsEndless { get; set; }
+
+        [JsonPropertyName("verdict")]
+        public string? Verdict { get; set; }
     }
 }

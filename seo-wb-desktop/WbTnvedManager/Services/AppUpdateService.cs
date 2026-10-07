@@ -31,7 +31,7 @@ namespace WbTnvedManager.Services
             get
             {
                 var ver = Assembly.GetExecutingAssembly().GetName().Version;
-                return ver != null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "v1.3.2";
+                return ver != null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "v1.3.3";
             }
         }
 

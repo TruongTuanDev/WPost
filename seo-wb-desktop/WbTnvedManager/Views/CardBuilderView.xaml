@@ -171,6 +171,32 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- STEP 7: Hồ Sơ Chứng Từ Hàng Hóa (РД) Cấu Hình Theo Shop -->
+                    <Border Background="#F8FAFC" CornerRadius="10" Padding="14" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Bước 7: Hồ Sơ Chứng Từ Hàng Hóa (РД - Cấu hình theo Shop):" FontSize="14" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,8"/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                    <TextBlock Text="Shop đăng bài:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                                    <ComboBox ItemsSource="{Binding AvailableShops}" SelectedItem="{Binding SelectedShop}" DisplayMemberPath="ShopName" Height="32"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                    <TextBlock Text="Bộ chứng từ áp dụng:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                                    <ComboBox ItemsSource="{Binding AvailablePackages}" SelectedItem="{Binding SelectedDocumentPackage}" DisplayMemberPath="PackageName" Height="32"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Document Status Banner -->
+                            <Border Background="#F0FDF4" CornerRadius="8" Padding="10" Margin="0,2,0,0" BorderBrush="#BBF7D0" BorderThickness="1">
+                                <TextBlock Text="{Binding DocumentValidationSummary}" FontSize="12" FontWeight="SemiBold" Foreground="#166534" TextWrapping="Wrap"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <!-- STEP 8 & 9: Russian Content & Preflight Check -->
                     <Border Background="#F8FAFC" CornerRadius="10" Padding="14" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
                         <StackPanel>

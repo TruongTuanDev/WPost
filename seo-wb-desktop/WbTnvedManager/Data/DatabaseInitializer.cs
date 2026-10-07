@@ -74,10 +74,50 @@ namespace WbTnvedManager.Data
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_card_cache_status ON WbCardCache(Status);
+
+                CREATE TABLE IF NOT EXISTS ShopProfiles (
+                    ShopId TEXT PRIMARY KEY,
+                    ShopName TEXT NOT NULL,
+                    Inn TEXT DEFAULT '',
+                    ApiKey TEXT DEFAULT '',
+                    AutoApplyOnCreate INTEGER DEFAULT 0,
+                    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS ShopDocumentPackages (
+                    Id TEXT PRIMARY KEY,
+                    ShopId TEXT NOT NULL,
+                    PackageName TEXT NOT NULL,
+                    DocType TEXT NOT NULL,
+                    DocNumber TEXT NOT NULL,
+                    StartDate TEXT NOT NULL,
+                    EndDate TEXT DEFAULT '',
+                    IsEndless INTEGER DEFAULT 0,
+                    TargetScope TEXT DEFAULT 'ALL',
+                    ScopeFilterValue TEXT DEFAULT '',
+                    AutoApplyOnCreate INTEGER DEFAULT 0,
+                    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_shop_docs ON ShopDocumentPackages(ShopId);
+
+                CREATE TABLE IF NOT EXISTS ShopDocumentCardLogs (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ShopId TEXT NOT NULL,
+                    NmId INTEGER NOT NULL,
+                    VendorCode TEXT DEFAULT '',
+                    DocNumber TEXT NOT NULL,
+                    WriteStatus TEXT NOT NULL,
+                    WbCheckStatus TEXT NOT NULL,
+                    ErrorMessage TEXT DEFAULT '',
+                    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_doc_card_logs ON ShopDocumentCardLogs(ShopId, NmId);
             ";
             createTableCmd.ExecuteNonQuery();
 
-            // Check if seed data exists
+            // Check if seed data exists for TnvedMatrix
             var countCmd = connection.CreateCommand();
             countCmd.CommandText = "SELECT COUNT(*) FROM TnvedMatrix";
             long count = (long)(countCmd.ExecuteScalar() ?? 0);
@@ -85,6 +125,39 @@ namespace WbTnvedManager.Data
             if (count < 100)
             {
                 SeedDefaultMatrix(connection);
+            }
+
+            // Seed default shop and document packages if none exist
+            SeedDefaultShopDocuments(connection);
+        }
+
+        private static void SeedDefaultShopDocuments(SqliteConnection connection)
+        {
+            var checkCmd = connection.CreateCommand();
+            checkCmd.CommandText = "SELECT COUNT(*) FROM ShopProfiles";
+            long shopCount = (long)(checkCmd.ExecuteScalar() ?? 0);
+
+            if (shopCount == 0)
+            {
+                var insShop = connection.CreateCommand();
+                insShop.CommandText = @"
+                    INSERT INTO ShopProfiles (ShopId, ShopName, Inn, AutoApplyOnCreate)
+                    VALUES ('SHOP_01', 'Cửa hàng thời trang WB (ООО ВЕСТ ЛАЙН)', '7707083893', 1);
+
+                    INSERT INTO ShopProfiles (ShopId, ShopName, Inn, AutoApplyOnCreate)
+                    VALUES ('SHOP_02', 'Cửa hàng đồ trẻ em (ООО ДЕТСТВО ПЛЮС)', '622903986965', 0);
+                ";
+                insShop.ExecuteNonQuery();
+
+                var insDoc = connection.CreateCommand();
+                insDoc.CommandText = @"
+                    INSERT INTO ShopDocumentPackages (Id, ShopId, PackageName, DocType, DocNumber, StartDate, EndDate, IsEndless, TargetScope, ScopeFilterValue, AutoApplyOnCreate)
+                    VALUES ('DOC_PKG_01', 'SHOP_01', 'Hồ sơ Hợp quy Hàng may mặc (Декларация соответствия)', 'Декларация соответствия', 'ЕАЭС N RU Д-RU.РА01.В.12345/26', '01.01.2025', '31.12.2027', 0, 'ALL', '', 1);
+
+                    INSERT INTO ShopDocumentPackages (Id, ShopId, PackageName, DocType, DocNumber, StartDate, EndDate, IsEndless, TargetScope, ScopeFilterValue, AutoApplyOnCreate)
+                    VALUES ('DOC_PKG_02', 'SHOP_02', 'Chứng nhận Hợp quy Trẻ em (Сертификат соответствия)', 'Сертификат соответствия', 'ЕАЭС RU C-RU.АБ02.В.54321/25', '15.03.2024', '', 1, 'ALL', '', 0);
+                ";
+                insDoc.ExecuteNonQuery();
             }
         }
 

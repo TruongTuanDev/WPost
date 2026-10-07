@@ -6,150 +6,254 @@
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="1100"
              Background="#F8FAFC">
-    <Grid Margin="24">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
         <Grid.RowDefinitions>
-            <!-- Header -->
+            <!-- Top Header & Shop Switcher -->
             <RowDefinition Height="Auto"/>
-            <!-- Filter Bar -->
-            <RowDefinition Height="Auto"/>
-            <!-- Main Content Area (Table + Form Drawer) -->
+            <!-- Main Content Area: Left (Configuration Form) & Right (Preview/Execute/Report) -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20,16" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
+        <!-- Header & Shop Selection Bar -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="18,14" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="📜" FontSize="20" Margin="0,0,8,0"/>
-                        <TextBlock Text="Quản Lý Hồ Sơ Chứng Từ Phù Hợp (ДС, СС, СГР)" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock Text="Chi Tiết Đăng Bài → Giấy Tờ Hàng Hóa (РД)" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
                     </StackPanel>
-                    <TextBlock Text="Theo dõi hạn dùng, phạm vi mã ТН ВЭД &amp; nhãn hiệu được bảo chứng để gắn vào thẻ WB và National Catalog" FontSize="13" Foreground="#64748B" Margin="28,4,0,0"/>
-                </StackPanel>
-                <Button Grid.Column="1" Command="{Binding NewDocumentCommand}" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="16,8" BorderThickness="0" Cursor="Hand">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="➕ " FontWeight="Bold"/>
-                                    <TextBlock Text="Thêm Chứng Từ Mới" FontWeight="Bold"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-        </Border>
-
-        <!-- Filter Bar -->
-        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16,12" Margin="0,0,0,16" BorderBrush="#E2E8F0" BorderThickness="1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="1.2*"/>
-                    <ColumnDefinition Width="1.2*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Search Box -->
-                <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="🔍 Tìm theo số chứng từ, đơn vị nộp, mã ТН ВЭД:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Padding="8,0" BorderBrush="#CBD5E1"/>
+                    <TextBlock Text="Cấu hình hồ sơ chứng từ một lần theo từng Shop và cập nhật đồng loạt lên toàn bộ thẻ sản phẩm Wildberries (mục «Документы»)." FontSize="13" Foreground="#64748B" Margin="28,4,0,0"/>
                 </StackPanel>
 
-                <!-- Type Filter -->
-                <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                    <TextBlock Text="Loại chứng từ (Тип РД):" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding TypeFilterOptions}" SelectedItem="{Binding TypeFilter}" Height="34"/>
-                </StackPanel>
-
-                <!-- Status Filter -->
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="Tình trạng hiệu lực:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding StatusFilterOptions}" SelectedItem="{Binding StatusFilter}" Height="34"/>
+                <!-- Shop Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🏪 Shop thao tác:" FontSize="13" FontWeight="Bold" Foreground="#334155" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox ItemsSource="{Binding Shops}" 
+                              SelectedItem="{Binding SelectedShop}" 
+                              DisplayMemberPath="ShopName" 
+                              Width="190" Height="34" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
+                    <Button Command="{Binding AddShopCommand}" Content="➕ Thêm Shop" Padding="12,0" Height="34" Background="#F1F5F9" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Main Content (2 Columns: Documents Grid & Editor Form) -->
-        <Grid Grid.Row="2">
+        <!-- Main Content (2 Columns) -->
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="2*"/>
+                <!-- Left: Form & Package Config -->
+                <ColumnDefinition Width="420"/>
+                <!-- Right: Preview, Run & Detailed Report -->
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Documents DataGrid -->
-            <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="12" Margin="0,0,12,0" BorderBrush="#E2E8F0" BorderThickness="1">
-                <DataGrid ItemsSource="{Binding FilteredDocuments}" SelectedItem="{Binding SelectedDocument}"
-                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                          HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="36"
-                          BorderThickness="0" Background="White">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Mã" Binding="{Binding Id}" Width="80"/>
-                        <DataGridTextColumn Header="Loại (Тип)" Binding="{Binding Type}" Width="160"/>
-                        <DataGridTextColumn Header="Số chứng từ (Номер)" Binding="{Binding ExactNumber}" Width="180"/>
-                        <DataGridTextColumn Header="Đơn vị đăng ký (Заявитель)" Binding="{Binding Applicant}" Width="140"/>
-                        <DataGridTextColumn Header="Trạng thái hiệu lực" Binding="{Binding RegistryStatus}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Border>
-
-            <!-- Editor Form Drawer -->
-            <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1">
+            <!-- LEFT COLUMN: Shop Package Config -->
+            <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="16" Margin="0,0,14,0" BorderBrush="#E2E8F0" BorderThickness="1">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock Text="Chi Tiết / Chỉnh Sửa Chứng Từ" FontSize="16" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
-                        
-                        <TextBlock Text="Loại chứng từ (Тип документа):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <ComboBox ItemsSource="{Binding DocumentTypes}" SelectedItem="{Binding FormType}" Height="32" Margin="0,0,0,8"/>
+                        <!-- Section Title -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚙️ Cấu Hình Bộ Giấy Tờ" FontSize="15" FontWeight="Bold" Foreground="#0F172A"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Command="{Binding NewPackageCommand}" Content="➕ Bộ mới" Padding="8,4" Margin="0,0,6,0" Background="#F1F5F9" BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="SemiBold"/>
+                                <Button Command="{Binding DeletePackageCommand}" Content="🗑️ Xóa" Padding="8,4" Background="#FEE2E2" Foreground="#DC2626" BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <TextBlock Text="Số chứng từ chính thức (Номер РД):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <TextBox Text="{Binding FormNumber, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,8"/>
+                        <!-- Existing Packages List -->
+                        <TextBlock Text="Danh sách bộ giấy tờ của shop:" FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Margin="0,0,0,4"/>
+                        <ListBox ItemsSource="{Binding Packages}" SelectedItem="{Binding SelectedPackage}" DisplayMemberPath="PackageName" Height="75" BorderBrush="#E2E8F0" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Tên thương mại hàng hóa (Наименование):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <TextBox Text="{Binding FormTradeName, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,8"/>
+                        <!-- Form: Tên bộ giấy tờ -->
+                        <TextBlock Text="Tên bộ giấy tờ (quản lý nội bộ):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding FormPackageName, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,10"/>
 
-                        <TextBlock Text="Đơn vị nộp đơn / Nhà sản xuất (Заявитель / Изготовитель):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <TextBox Text="{Binding FormApplicant, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,8"/>
+                        <!-- Form: Loại giấy tờ -->
+                        <TextBlock Text="Loại giấy tờ (Тип РД):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                        <ComboBox ItemsSource="{Binding DocTypes}" SelectedItem="{Binding FormDocType}" Height="32" Margin="0,0,0,10"/>
 
-                        <Grid Margin="0,4,0,8">
+                        <!-- Form: Số giấy tờ -->
+                        <TextBlock Text="Số giấy tờ (Номер РД - Giữ nguyên ký tự Nga/Latin):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                        <TextBox Text="{Binding FormDocNumber, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,10" FontWeight="SemiBold" Foreground="#1E3A8A"/>
+
+                        <!-- Form: Ngày hiệu lực -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                <TextBlock Text="Ngày cấp (Дата начала):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                                <TextBlock Text="Ngày bắt đầu (Действует от):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
                                 <DatePicker SelectedDate="{Binding FormStartDate}" Height="32"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                                <TextBlock Text="Hạn đến (Дата окончания):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
-                                <DatePicker SelectedDate="{Binding FormEndDate}" Height="32"/>
+                                <TextBlock Text="Ngày hết hạn (Действует до):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                                <DatePicker SelectedDate="{Binding FormEndDate}" IsEnabled="{Binding IsEndDateEnabled}" Height="32"/>
                             </StackPanel>
                         </Grid>
 
-                        <CheckBox IsChecked="{Binding FormIsEndless}" Content="Chứng từ vô thời hạn (Бессрочно)" FontWeight="SemiBold" Margin="0,4,0,8"/>
+                        <!-- Form: Vô thời hạn Checkbox -->
+                        <CheckBox IsChecked="{Binding FormIsEndless}" Content="Không thời hạn hiệu lực (Бессрочно)" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                        <TextBlock Text="Mã ТН ВЭД được bảo chứng (cách nhau dấu phẩy):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <TextBox Text="{Binding FormCoveredTnved, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,8"/>
+                        <!-- Form: Phạm vi áp dụng -->
+                        <TextBlock Text="Phạm vi áp dụng trong shop:" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                        <ComboBox ItemsSource="{Binding TargetScopes}" SelectedItem="{Binding FormTargetScope}" Height="32" Margin="0,0,0,10"/>
 
-                        <TextBlock Text="Nhãn hiệu được bảo chứng (Бренды):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,2"/>
-                        <TextBox Text="{Binding FormCoveredBrands, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0" Margin="0,0,0,12"/>
+                        <!-- Form: Lọc phạm vi nếu cần -->
+                        <StackPanel Visibility="{Binding IsScopeFilterVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,10">
+                            <TextBlock Text="Giá trị lọc (Tên danh mục hoặc Tiền tố mã TNVED):" FontSize="12" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding FormScopeFilterValue, UpdateSourceTrigger=PropertyChanged}" Height="32" VerticalContentAlignment="Center" Padding="6,0"/>
+                        </StackPanel>
 
-                        <!-- Validation Message -->
-                        <Border Background="#F1F5F9" CornerRadius="8" Padding="10" Margin="0,0,0,12">
-                            <TextBlock Text="{Binding ValidationStatusMessage}" FontWeight="SemiBold" FontSize="12" Foreground="#2563EB" TextWrapping="Wrap"/>
+                        <!-- Form: Tự động áp dụng khi đăng bài mới -->
+                        <Border Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,12">
+                            <CheckBox IsChecked="{Binding FormAutoApplyOnCreate}">
+                                <TextBlock TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold" Foreground="#166534">
+                                    ⚡ Tự động áp dụng bộ giấy tờ này khi tạo/đăng thẻ mới cho shop
+                                </TextBlock>
+                            </CheckBox>
                         </Border>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Command="{Binding DeleteDocumentCommand}" Background="#EF4444" Foreground="White" FontWeight="Bold" Padding="12,8" Margin="0,0,8,0" BorderThickness="0" Cursor="Hand" Content="Xóa"/>
-                            <Button Command="{Binding SaveDocumentCommand}" Background="#16A34A" Foreground="White" FontWeight="Bold" Padding="16,8" BorderThickness="0" Cursor="Hand" Content="💾 Lưu Chứng Từ"/>
-                        </StackPanel>
+                        <!-- Validation Message -->
+                        <TextBlock Text="{Binding ValidationMessage}" FontWeight="SemiBold" FontSize="12" Foreground="#DC2626" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                        <!-- Save Config Button -->
+                        <Button Command="{Binding SavePackageCommand}" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="14,10" BorderThickness="0" Cursor="Hand" Content="💾 Lưu Cấu Hình Giấy Tờ"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
+
+            <!-- RIGHT COLUMN: Actions, Preview & Results DataGrid -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <!-- Action Bar & Controls -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Preview Summary Banner -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Progress Bar (if processing) -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Statistics Header -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- DataGrid Results Table -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- 1. Action Bar -->
+                <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="14,12" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Mode Options -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <CheckBox IsChecked="{Binding ReplaceExisting}" Margin="0,0,0,4">
+                                <TextBlock Text="Chế độ thay thế (Ghi đè giấy tờ trùng số/ngày thay vì chỉ bổ sung còn thiếu)" FontWeight="SemiBold" FontSize="12" Foreground="#334155"/>
+                            </CheckBox>
+                            <TextBlock Text="* Chế độ mặc định: Chỉ bổ sung giấy tờ còn thiếu, tự động bỏ qua nếu đã có giấy tờ trùng trên thẻ." FontSize="11" Foreground="#64748B"/>
+                        </StackPanel>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding PreviewApplyCommand}" Content="🔍 1. Xem Trước" Padding="14,8" Margin="0,0,8,0" Background="#F1F5F9" Foreground="#1E293B" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                            <Button Command="{Binding ApplyToWbCommand}" Content="🚀 2. Áp Dụng Lên WB" Padding="16,8" Margin="0,0,8,0" Background="#16A34A" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                            <Button Command="{Binding RetryFailedCardsCommand}" Content="🔄 Thử Lại Thẻ Lỗi" Padding="12,8" Background="#EF4444" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 2. Preview Summary Banner -->
+                <Border Grid.Row="1" Background="#EFF6FF" CornerRadius="10" Padding="12" Margin="0,0,0,12" BorderBrush="#BFDBFE" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="📋 Thông Tin Lượt Áp Dụng / Xem Trước:" FontWeight="Bold" FontSize="13" Foreground="#1D4ED8" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding PreviewSummaryText, FallbackValue='Chưa bấm xem trước. Bấm «Xem Trước» để quét toàn bộ các trang sản phẩm của shop.'}" FontSize="12" Foreground="#1E3A8A" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 3. Progress Bar & Real-time Status -->
+                <Border Grid.Row="2" Background="White" CornerRadius="10" Padding="12" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding ProgressStatusText}" FontSize="12" FontWeight="SemiBold" Foreground="#334155"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ProgressPercent, StringFormat='{}{0}%'}" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding ProgressPercent}" Height="8" BorderThickness="0" Background="#E2E8F0" Foreground="#2563EB"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 4. Statistics Header Badges -->
+                <Grid Grid.Row="3" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="10" Margin="0,0,6,0" BorderBrush="#E2E8F0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Tổng thẻ trong phạm vi" FontSize="11" Foreground="#64748B"/>
+                            <TextBlock Text="{Binding TotalReportsCount}" FontSize="16" FontWeight="Bold" Foreground="#0F172A"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="10" Margin="3,0,3,0" BorderBrush="#BBF7D0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Đã ghi trên WB" FontSize="11" Foreground="#166534"/>
+                            <TextBlock Text="{Binding SuccessReportsCount}" FontSize="16" FontWeight="Bold" Foreground="#16A34A"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="10" Margin="3,0,3,0" BorderBrush="#FEF08A" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Đã có giấy tờ trùng (bỏ qua)" FontSize="11" Foreground="#854D0E"/>
+                            <TextBlock Text="{Binding DuplicateReportsCount}" FontSize="16" FontWeight="Bold" Foreground="#CA8A04"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Background="White" CornerRadius="8" Padding="10" Margin="6,0,0,0" BorderBrush="#FECACA" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Lỗi / Cần bổ sung" FontSize="11" Foreground="#991B1B"/>
+                            <TextBlock Text="{Binding ErrorReportsCount}" FontSize="16" FontWeight="Bold" Foreground="#EF4444"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 5. Detailed Report DataGrid -->
+                <Border Grid.Row="4" Background="White" CornerRadius="12" Padding="10" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <DataGrid ItemsSource="{Binding ReportItems}" 
+                              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="34"
+                              BorderThickness="0" Background="White">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã WB (nmId)" Binding="{Binding NmId}" Width="100"/>
+                            <DataGridTextColumn Header="Mã Người Bán (vendorCode)" Binding="{Binding VendorCode}" Width="150"/>
+                            <DataGridTextColumn Header="Tiêu đề sản phẩm" Binding="{Binding Title}" Width="200"/>
+                            <DataGridTextColumn Header="Số Giấy Tờ (Номер)" Binding="{Binding DocNumber}" Width="160"/>
+                            <DataGridTextColumn Header="Kết Quả Ghi" Binding="{Binding WriteStatus}" Width="140"/>
+                            <DataGridTextColumn Header="Tình Trạng WB Kiểm Tra" Binding="{Binding WbCheckStatus}" Width="180"/>
+                            <DataGridTextColumn Header="Chi Tiết Lỗi / Ghi Chú" Binding="{Binding ErrorMessage}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
