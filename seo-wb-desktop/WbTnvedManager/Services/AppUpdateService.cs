@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -31,7 +31,7 @@ namespace WbTnvedManager.Services
             get
             {
                 var ver = Assembly.GetExecutingAssembly().GetName().Version;
-                return ver != null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "v1.0.3";
+                return ver != null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "v1.2.0";
             }
         }
 
