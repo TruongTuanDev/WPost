@@ -123,14 +123,14 @@ namespace WbTnvedManager.Data
                 new() { SubjectId = 109, SubjectName = "Боди", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6109100000", Description = "Боди женские трикотажные из хлопка" },
 
                 // Брюки спортивные & Штаны спортивные (Sweatpants / Joggers) - SubjectID 505, 506
-                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Брюки спортивные мужские трикотажные хлопчатобумажные" },
+                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420001", Description = "Брюки спортивные мужские трикотажные хлопчатобумажные" },
                 new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Мужской", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6103430000", Description = "Брюки спортивные мужские трикотажные синтетические" },
                 new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Брюки спортивные женские трикотажные хлопчатобумажные" },
                 new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Женский", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6104630000", Description = "Брюки спортивные женские трикотажные синтетические" },
-                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Унисекс", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Брюки спортивные унисекс трикотажные" },
-                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Мальчики", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Брюки спортивные для мальчиков хлопковые" },
+                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Унисекс", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420001", Description = "Брюки спортивные унисекс трикотажные" },
+                new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Мальчики", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420001", Description = "Брюки спортивные для мальчиков хлопковые" },
                 new() { SubjectId = 505, SubjectName = "Брюки спортивные", Gender = "Девочки", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Брюки спортивные для девочек хлопковые" },
-                new() { SubjectId = 506, SubjectName = "Джоггеры", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Джоггеры мужские трикотажные хлопковые" },
+                new() { SubjectId = 506, SubjectName = "Джоггеры", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420001", Description = "Джоггеры мужские трикотажные хлопковые" },
                 new() { SubjectId = 506, SubjectName = "Джоггеры", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Джоггеры женские трикотажные хлопковые" },
                 new() { SubjectId = 507, SubjectName = "Леггинсы", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Леггинсы женские хлопковые" },
                 new() { SubjectId = 507, SubjectName = "Леггинсы", Gender = "Женский", Material = "Синтетика", KnitType = "Трикотаж", TnvedCode = "6104630000", Description = "Леггинсы женские из синтетических нитей" },
@@ -144,7 +144,7 @@ namespace WbTnvedManager.Data
                 new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Женский", Material = "Хлопок", KnitType = "Ткань", TnvedCode = "6204623100", Description = "Брюки женские хлопчатобумажные тканые" },
                 new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Женский", Material = "Синтетика", KnitType = "Ткань", TnvedCode = "6204631800", Description = "Брюки женские из синтетических нитей" },
                 new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Женский", Material = "Шерсть", KnitType = "Ткань", TnvedCode = "6204611000", Description = "Брюки женские из шерстяной пряжи" },
-                new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Брюки мужские трикотажные хлопчатобумажные" },
+                new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420001", Description = "Брюки мужские трикотажные хлопчатобумажные" },
                 new() { SubjectId = 240, SubjectName = "Брюки", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Брюки женские трикотажные хлопчатобумажные" },
 
                 // Джинсы (Jeans) - SubjectID 273
@@ -221,7 +221,7 @@ namespace WbTnvedManager.Data
                 // Шорты (Shorts) - SubjectID 235
                 new() { SubjectId = 235, SubjectName = "Шорты", Gender = "Мужской", Material = "Хлопок", KnitType = "Ткань", TnvedCode = "6203429000", Description = "Шорты мужские хлопчатобумажные" },
                 new() { SubjectId = 235, SubjectName = "Шорты", Gender = "Женский", Material = "Хлопок", KnitType = "Ткань", TnvedCode = "6204629000", Description = "Шорты женские хлопчатобумажные" },
-                new() { SubjectId = 235, SubjectName = "Шорты", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420000", Description = "Шорты мужские трикотажные хлопковые" },
+                new() { SubjectId = 235, SubjectName = "Шорты", Gender = "Мужской", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6103420009", Description = "Шорты мужские трикотажные хлопковые" },
                 new() { SubjectId = 235, SubjectName = "Шорты", Gender = "Женский", Material = "Хлопок", KnitType = "Трикотаж", TnvedCode = "6104620000", Description = "Шорты женские трикотажные хлопковые" },
 
                 // Носки & Колготки (Socks & Tights) - SubjectID 197, 198

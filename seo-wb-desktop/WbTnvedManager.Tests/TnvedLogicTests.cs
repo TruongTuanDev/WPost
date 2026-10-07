@@ -180,7 +180,7 @@ namespace WbTnvedManager.Tests
             var auditResults = auditService.AuditCards(sampleCards);
 
             Assert.Single(auditResults);
-            Assert.Equal("6103420000", auditResults[0].SuggestedTnved);
+            Assert.Equal("6103420001", auditResults[0].SuggestedTnved);
             Assert.True(auditResults[0].CanFix);
             Assert.NotEqual(AuditStatus.NoMatrixMatch, auditResults[0].Status);
         }
