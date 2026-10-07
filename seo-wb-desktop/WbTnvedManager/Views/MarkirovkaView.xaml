@@ -1,0 +1,229 @@
+﻿<UserControl x:Class="WbTnvedManager.Views.MarkirovkaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:WbTnvedManager.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1150"
+             Background="#F8FAFC">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <!-- Top Header & Action Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Stat Badges Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Tri-Source Comparison & Findings Tabs -->
+            <RowDefinition Height="*"/>
+            <!-- Bottom Status -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20,16" Margin="0,0,0,14" BorderBrush="#E2E8F0" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="🏷️" FontSize="20" Margin="0,0,8,0"/>
+                        <TextBlock Text="Đồng Bộ Честный ЗНАК (Нац. Каталог) &amp; Wildberries" FontSize="18" FontWeight="Bold" Foreground="#0F172A"/>
+                    </StackPanel>
+                    <TextBlock Text="Đối chiếu dữ liệu 3 nguồn (Hàng thực tế / КИЗ ➔ Нац. каталог ➔ Thẻ Wildberries), lập đề xuất có bằng chứng, bảo toàn 100% dữ liệu gốc." FontSize="13" Foreground="#64748B" Margin="28,4,0,0"/>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding LoadSampleDataCommand}" Content="🧪 Thử Nghiệm T01-T26" Background="#F1F5F9" Foreground="#334155" FontWeight="SemiBold" Padding="12,8" BorderBrush="#CBD5E1" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding RunReconciliationCommand}" Content="🔄 Quét &amp; Đối Chiếu 3 Nguồn" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding ApproveSelectedCommand}" Content="✅ Phê Duyệt Bản Sửa" Background="#16A34A" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand"/>
+                    <Button Command="{Binding SyncToWbCommand}" Content="🚀 Gửi Lên Wildberries" Background="#7C3AED" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Stat Badges Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Border Background="#FEE2E2" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
+                    <TextBlock>
+                        <Run Text="❌ Lỗi nguồn / Bất đồng: " Foreground="#991B1B"/>
+                        <Run Text="{Binding OpenFindingsCount, Mode=OneWay}" FontWeight="Bold" Foreground="#991B1B"/>
+                    </TextBlock>
+                </Border>
+                <Border Background="#FEF3C7" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
+                    <TextBlock>
+                        <Run Text="⏳ Chờ duyệt sửa: " Foreground="#92400E"/>
+                        <Run Text="{Binding ReadyProposalsCount, Mode=OneWay}" FontWeight="Bold" Foreground="#92400E"/>
+                    </TextBlock>
+                </Border>
+                <Border Background="#DCFCE7" CornerRadius="8" Padding="12,6">
+                    <TextBlock>
+                        <Run Text="✅ Đã duyệt (Sẵn sàng gửi): " Foreground="#166534"/>
+                        <Run Text="{Binding ApprovedProposalsCount, Mode=OneWay}" FontWeight="Bold" Foreground="#166534"/>
+                    </TextBlock>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="#EEF2F6" CornerRadius="6" Padding="10,4">
+                    <TextBlock Text="⚖️ Nghị định 821-ФЗ: Thời hạn kiểm tra thẻ 180 ngày" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB"/>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content Area: Tabbed Views -->
+        <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
+            <!-- TAB 1: ĐỀ XUẤT ĐỐI CHIẾU 3 NGUỒN (PROPOSALS) -->
+            <TabItem Header="📋 Bảng So Sánh 3 Nguồn &amp; Đề Xuất Sửa WB" FontSize="13" FontWeight="SemiBold">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Table of Proposals -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="10" Padding="10" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,0,10">
+                        <DataGrid ItemsSource="{Binding Proposals}" SelectedItem="{Binding SelectedProposal}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="38" AlternatingRowBackground="#F8FAFC" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="40"/>
+                                <DataGridTextColumn Header="VendorCode / SKU" Binding="{Binding VendorCode}" FontWeight="SemiBold" Width="140"/>
+                                <DataGridTextColumn Header="Size" Binding="{Binding TechSize}" Width="60"/>
+                                <DataGridTextColumn Header="GTIN Kho (Thực tế)" Binding="{Binding PhysicalGtin}" Width="130"/>
+                                <DataGridTextColumn Header="GTIN Нац. Каталог" Binding="{Binding NkGtin}" Width="130"/>
+                                <DataGridTextColumn Header="ТН ВЭД Нац. Каталог" Binding="{Binding NkTnved}" Width="110"/>
+                                <DataGridTextColumn Header="ТН ВЭД WB Hiện Tại" Binding="{Binding WbCurrentTnved}" Width="110"/>
+                                <DataGridTextColumn Header="➔ ТН ВЭД Đề Xuất" Binding="{Binding DesiredTnved}" FontWeight="Bold" Foreground="#16A34A" Width="110"/>
+                                <DataGridTextColumn Header="Trạng thái đề xuất" Binding="{Binding State}" Width="110"/>
+                                <DataGridTextColumn Header="Trạng thái gửi WB" Binding="{Binding Delivery}" Width="110"/>
+                                <DataGridTextColumn Header="Sàn duyệt (180 ngày)" Binding="{Binding MarketplaceCheck}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Tri-Source Comparison Inspector Drawer -->
+                    <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="16" BorderBrush="#CBD5E1" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="🔎 ĐỐI SOÁT CHI TIẾT 3 NGUỒN CỦA SẢN PHẨM:" FontWeight="Bold" FontSize="13" Foreground="#0F172A" Margin="0,0,0,8"/>
+
+                            <Grid Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Column 1: Physical Goods -->
+                                <Border Grid.Column="0" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,6,0" Background="#F8FAFC">
+                                    <StackPanel>
+                                        <TextBlock Text="📦 1. HÀNG &amp; NHÃN THỰC TẾ TRONG KHO" FontWeight="Bold" Foreground="#334155" FontSize="12" Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding SelectedProposal.PhysicalGtin, StringFormat='GTIN nhãn: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedProposal.PhysicalSize, StringFormat='Kích cỡ nhãn: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Tình trạng КИЗ: Đã dán nhãn DataMatrix" FontSize="11" Foreground="#16A34A"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Column 2: National Catalog -->
+                                <Border Grid.Column="1" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12" Margin="3,0,3,0" Background="#F8FAFC">
+                                    <StackPanel>
+                                        <TextBlock Text="🏛️ 2. НАЦИОНАЛЬНЫЙ КАТАЛОГ (CRPT)" FontWeight="Bold" Foreground="#2563EB" FontSize="12" Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding SelectedProposal.NkGtin, StringFormat='GTIN đăng ký: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedProposal.NkStatus, StringFormat='Trạng thái: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedProposal.NkTnved, StringFormat='Mã ТН ВЭД chuẩn: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Phân quyền: Đã xác thực tổ chức" FontSize="11" Foreground="#16A34A"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Column 3: Wildberries -->
+                                <Border Grid.Column="2" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="8" Padding="12" Margin="6,0,0,0" Background="#F0FDF4">
+                                    <StackPanel>
+                                        <TextBlock Text="🛍️ 3. WILDBERRIES (ĐỀ XUẤT CẬP NHẬT)" FontWeight="Bold" Foreground="#166534" FontSize="12" Margin="0,0,0,6"/>
+                                        <TextBlock Text="{Binding SelectedProposal.WbCurrentTnved, StringFormat='Mã ТН ВЭД hiện tại: {0}'}" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedProposal.DesiredTnved, StringFormat='➔ Sửa thành ТН ВЭД: {0}'}" FontWeight="Bold" Foreground="#16A34A" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding SelectedProposal.DesiredGender, StringFormat='➔ Sửa thành Giới tính: {0}'}" FontWeight="Bold" Foreground="#2563EB" FontSize="12" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Bảo toàn: 100% Ảnh, Kích cỡ, Barcodes, Giấy tờ" FontSize="11" Foreground="#475569"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 2: LỖI NGUỒN VÀ BẤT ĐỒNG (FINDINGS) -->
+            <TabItem Header="⚠️ Hàng Đợi Lỗi Nguồn &amp; Mâu Thuẫn (Findings)" FontSize="13" FontWeight="SemiBold">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Findings Table -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="10" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,10,0">
+                        <DataGrid ItemsSource="{Binding Findings}" SelectedItem="{Binding SelectedFinding}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeight="38" AlternatingRowBackground="#F8FAFC" BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Mã Quy Tắc" Binding="{Binding RuleId}" FontWeight="Bold" Width="90"/>
+                                <DataGridTextColumn Header="Phân Loại Nguồn" Binding="{Binding SourceKind}" Width="160"/>
+                                <DataGridTextColumn Header="SKU / Thẻ" Binding="{Binding VendorCode}" Width="140"/>
+                                <DataGridTextColumn Header="Mức Độ" Binding="{Binding Severity}" Width="90"/>
+                                <DataGridTextColumn Header="Nội Dung Lỗi Tiếng Nga" Binding="{Binding RawMessageRu}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Finding Detail & Source Action -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="10" Padding="16" BorderBrush="#E2E8F0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Chi Tiết Lỗi &amp; Hướng Dẫn Xử Lý" FontSize="15" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,0,12"/>
+
+                            <Border Background="#F8FAFC" CornerRadius="8" Padding="12" Margin="0,0,0,12" BorderBrush="#E2E8F0" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Nguyên nhân tiếng Nga (Nguyên văn từ sàn/CRPT):" FontWeight="Bold" Foreground="#64748B" FontSize="11"/>
+                                    <TextBlock Text="{Binding SelectedFinding.RawMessageRu, FallbackValue='(Chưa chọn lỗi)'}" FontWeight="SemiBold" Foreground="#B91C1C" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,8"/>
+
+                                    <TextBlock Text="Giải thích &amp; Hướng dẫn tiếng Việt:" FontWeight="Bold" Foreground="#64748B" FontSize="11"/>
+                                    <TextBlock Text="{Binding SelectedFinding.TranslatedExplanationVi, FallbackValue='Vui lòng chọn một lỗi trong danh sách để xem chi tiết.'}" Foreground="#334155" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,8"/>
+
+                                    <TextBlock Text="Bằng chứng / Hồ sơ liên quan:" FontWeight="Bold" Foreground="#64748B" FontSize="11"/>
+                                    <TextBlock Text="{Binding SelectedFinding.EvidenceSummary, FallbackValue='-'}" Foreground="#475569" FontSize="12" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Command="{Binding CreateSourceTaskCommand}" Background="#0284C7" Foreground="White" FontWeight="Bold" Padding="14,10" BorderThickness="0" Cursor="Hand" Content="🛠️ Tạo Việc Sửa Dữ Liệu Nguồn (Нац. Каталог / Kho)"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#334155" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <ProgressBar Grid.Column="1" IsIndeterminate="{Binding IsBusy}" Width="150" Height="14" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

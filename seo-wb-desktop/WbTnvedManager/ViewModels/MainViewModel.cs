@@ -34,6 +34,7 @@ namespace WbTnvedManager.ViewModels
 
         public CardBuilderViewModel CardBuilderVM { get; }
         public BulkAuditViewModel BulkAuditVM { get; }
+        public MarkirovkaViewModel MarkirovkaVM { get; }
         public DocumentsViewModel DocumentsVM { get; }
         public SyncCenterViewModel SyncCenterVM { get; }
         public MatrixManagerViewModel MatrixManagerVM { get; }
@@ -53,9 +54,9 @@ namespace WbTnvedManager.ViewModels
                 if (SetProperty(ref _selectedTabIndex, value))
                 {
                     if (value == 0) CardBuilderVM.LoadSubjectsFromMatrix();
-                    else if (value == 2) DocumentsVM.ApplyFilter();
-                    else if (value == 3) SyncCenterVM.ApplyFilter();
-                    else if (value == 4) MatrixManagerVM.RefreshList();
+                    else if (value == 3) DocumentsVM.ApplyFilter();
+                    else if (value == 4) SyncCenterVM.ApplyFilter();
+                    else if (value == 5) MatrixManagerVM.RefreshList();
                 }
             }
         }
@@ -81,6 +82,7 @@ namespace WbTnvedManager.ViewModels
             // Initialize Services
             _repository = new MatrixRepository();
             _apiClient = new WbApiClient(_settings.ApiKey, _settings.ContentBaseUrl, _settings.RateLimitDelayMs);
+            var nkConnector = new NationalCatalogConnector();
             _selectorService = new TnvedSelectorService(_repository);
             _matrix104Engine = new TnvedMatrix104Engine();
             _specAuditEngine = new ProductVariantAuditEngine(_matrix104Engine);
@@ -93,6 +95,7 @@ namespace WbTnvedManager.ViewModels
             // Initialize Child ViewModels
             CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
             BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService, _safePipeline);
+            MarkirovkaVM = new MarkirovkaViewModel(_apiClient, nkConnector, _safePipeline, _repository, new SellerAccount { INN = "7707083893" });
             DocumentsVM = new DocumentsViewModel();
             SyncCenterVM = new SyncCenterViewModel();
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);

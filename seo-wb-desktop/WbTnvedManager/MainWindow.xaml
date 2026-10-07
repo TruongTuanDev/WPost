@@ -126,7 +126,23 @@
                             </Grid>
                         </ListBoxItem>
 
-                        <!-- Nav 2: Hồ Sơ Chứng Từ РД -->
+                        <!-- Nav 2: Đồng Bộ Честный ЗНАК / Markirovka -->
+                        <ListBoxItem>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🏷️" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="Честный ЗНАК (NK)" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <Border Grid.Column="2" Background="#7C3AED" CornerRadius="10" Padding="7,2" Margin="4,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding MarkirovkaVM.OpenFindingsCount, Mode=OneWay}" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                                </Border>
+                            </Grid>
+                        </ListBoxItem>
+
+                        <!-- Nav 3: Hồ Sơ Chứng Từ РД -->
                         <ListBoxItem>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -228,22 +244,27 @@
                     <views:BulkAuditView DataContext="{Binding BulkAuditVM}"/>
                 </TabItem>
 
-                <!-- Tab 2: Conformity Documents РД -->
+                <!-- Tab 2: Markirovka & National Catalog Tri-Source Sync -->
+                <TabItem>
+                    <views:MarkirovkaView DataContext="{Binding MarkirovkaVM}"/>
+                </TabItem>
+
+                <!-- Tab 3: Conformity Documents РД -->
                 <TabItem>
                     <views:DocumentsView DataContext="{Binding DocumentsVM}"/>
                 </TabItem>
 
-                <!-- Tab 3: Sync Center & Handover -->
+                <!-- Tab 4: Sync Center & Handover -->
                 <TabItem>
                     <views:SyncCenterView DataContext="{Binding SyncCenterVM}"/>
                 </TabItem>
 
-                <!-- Tab 4: Matrix Manager -->
+                <!-- Tab 5: Matrix Manager -->
                 <TabItem>
                     <views:MatrixManagerView DataContext="{Binding MatrixManagerVM}"/>
                 </TabItem>
 
-                <!-- Tab 5: Settings -->
+                <!-- Tab 6: Settings -->
                 <TabItem>
                     <views:SettingsView DataContext="{Binding SettingsVM}"/>
                 </TabItem>
