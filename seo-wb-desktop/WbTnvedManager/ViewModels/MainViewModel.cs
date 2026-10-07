@@ -82,7 +82,7 @@ namespace WbTnvedManager.ViewModels
             // Initialize Services
             _repository = new MatrixRepository();
             _apiClient = new WbApiClient(_settings.ApiKey, _settings.ContentBaseUrl, _settings.RateLimitDelayMs);
-            var nkConnector = new NationalCatalogConnector();
+            var nkConnector = new NationalCatalogConnector(apiKey: _settings.NationalCatalogApiKey, baseUrl: _settings.NationalCatalogBaseUrl);
             _selectorService = new TnvedSelectorService(_repository);
             _matrix104Engine = new TnvedMatrix104Engine();
             _specAuditEngine = new ProductVariantAuditEngine(_matrix104Engine);
@@ -95,11 +95,11 @@ namespace WbTnvedManager.ViewModels
             // Initialize Child ViewModels
             CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
             BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService, _safePipeline);
-            MarkirovkaVM = new MarkirovkaViewModel(_apiClient, nkConnector, _safePipeline, _repository, new SellerAccount { INN = "7707083893" });
+            MarkirovkaVM = new MarkirovkaViewModel(_apiClient, nkConnector, _safePipeline, _repository, new SellerAccount { INN = string.IsNullOrWhiteSpace(_settings.LegalEntityInn) ? "7707083893" : _settings.LegalEntityInn });
             DocumentsVM = new DocumentsViewModel();
             SyncCenterVM = new SyncCenterViewModel();
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);
-            SettingsVM = new SettingsViewModel(_settings, _apiClient);
+            SettingsVM = new SettingsViewModel(_settings, _apiClient, nkConnector);
 
             _currentView = CardBuilderVM;
 

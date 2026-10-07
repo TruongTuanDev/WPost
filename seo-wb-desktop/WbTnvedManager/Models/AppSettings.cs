@@ -8,6 +8,9 @@ namespace WbTnvedManager.Models
     {
         public string ApiKey { get; set; } = string.Empty;
         public string ContentBaseUrl { get; set; } = "https://content-api.wildberries.ru";
+        public string LegalEntityInn { get; set; } = "7707083893";
+        public string NationalCatalogApiKey { get; set; } = string.Empty;
+        public string NationalCatalogBaseUrl { get; set; } = "https://api.catalog.crpt.ru";
         public int RateLimitDelayMs { get; set; } = 350;
         public int BatchSize { get; set; } = 50;
         public bool AutoCheckErrors { get; set; } = true;

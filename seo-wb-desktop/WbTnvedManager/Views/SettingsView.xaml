@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="WbTnvedManager.Views.SettingsView"
+<UserControl x:Class="WbTnvedManager.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -47,17 +47,31 @@
                     <TextBlock Text="Khuyến nghị: 300ms - 500ms để tránh bị giới hạn HTTP 429 từ Wildberries." FontSize="12" Foreground="#64748B" Margin="0,0,0,16"/>
 
                     <TextBlock Text="Kích thước nhóm cập nhật (Batch Size):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
-                    <TextBox Text="{Binding BatchSize, UpdateSourceTrigger=PropertyChanged}" Width="120" Height="30" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,0,0,24" Padding="6,0"/>
+                    <TextBox Text="{Binding BatchSize, UpdateSourceTrigger=PropertyChanged}" Width="120" Height="30" HorizontalAlignment="Left" VerticalContentAlignment="Center" Margin="0,0,0,16" Padding="6,0"/>
+
+                    <Separator Margin="0,8,0,16"/>
+
+                    <TextBlock Text="3. НАЦИОНАЛЬНЫЙ КАТАЛОГ (ЧЕСТНЫЙ ЗНАК / CRPT)" FontSize="14" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,0,12"/>
+                    <TextBlock Text="Mã số thuế doanh nghiệp (INN / ИНН - 10 hoặc 12 số):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding LegalEntityInn, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+
+                    <TextBlock Text="CRPT API Key / Token (Национальный Каталог v5.68):" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding NationalCatalogApiKey, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,12" Padding="6,0" FontFamily="Consolas"/>
+
+                    <TextBlock Text="CRPT Base URL:" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <TextBox Text="{Binding NationalCatalogBaseUrl, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,16" Padding="6,0"/>
 
                     <Separator Margin="0,0,0,20"/>
 
                     <!-- Action Buttons -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                         <Button Command="{Binding SaveSettingsCommand}" Content="💾 Lưu Cài Đặt" Background="#2563EB" Foreground="White" FontWeight="Bold" Padding="18,10" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand"/>
-                        <Button Command="{Binding TestConnectionCommand}" Content="🔌 Kiểm Tra Kết Nối" Background="#EEF2F6" Foreground="#334155" FontWeight="SemiBold" Padding="16,10" BorderBrush="#CBD5E1" Cursor="Hand"/>
+                        <Button Command="{Binding TestConnectionCommand}" Content="🔌 Kiểm Tra WB API" Background="#EEF2F6" Foreground="#334155" FontWeight="SemiBold" Padding="14,10" BorderBrush="#CBD5E1" Margin="0,0,12,0" Cursor="Hand"/>
+                        <Button Command="{Binding TestNkConnectionCommand}" Content="🛡️ Kiểm Tra CRPT API" Background="#FEF3C7" Foreground="#92400E" FontWeight="SemiBold" Padding="14,10" BorderBrush="#FCD34D" Cursor="Hand"/>
                     </StackPanel>
 
-                    <TextBlock Text="{Binding ConnectionStatus}" FontWeight="SemiBold" FontSize="13" Foreground="#0284C7"/>
+                    <TextBlock Text="{Binding ConnectionStatus}" FontWeight="SemiBold" FontSize="13" Foreground="#0284C7" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding NkConnectionStatus}" FontWeight="SemiBold" FontSize="13" Foreground="#059669"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
