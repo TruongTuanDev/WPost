@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using WbTnvedManager.Data;
 using WbTnvedManager.Models;
 using WbTnvedManager.Services;
 
@@ -18,6 +19,7 @@ namespace WbTnvedManager.ViewModels
         private readonly CardBulkUpdateService _bulkUpdateService;
         private readonly CardErrorTrackerService _errorTracker;
         private readonly SafeWbUpdatePipeline? _safePipeline;
+        private readonly WbCardCacheRepository _cacheRepository;
 
         private List<AuditResultItem> _allAuditResults = new();
         private ObservableCollection<AuditResultItem> _filteredResults = new();
@@ -106,13 +108,15 @@ namespace WbTnvedManager.ViewModels
             CardAuditService auditService,
             CardBulkUpdateService bulkUpdateService,
             CardErrorTrackerService errorTracker,
-            SafeWbUpdatePipeline? safePipeline = null)
+            SafeWbUpdatePipeline? safePipeline = null,
+            WbCardCacheRepository? cacheRepository = null)
         {
             _apiClient = apiClient;
             _auditService = auditService;
             _bulkUpdateService = bulkUpdateService;
             _errorTracker = errorTracker;
             _safePipeline = safePipeline;
+            _cacheRepository = cacheRepository ?? new WbCardCacheRepository();
 
             ScanCardsCommand = new RelayCommand(async () => await ScanAndAuditAsync(), () => !IsBusy);
             LoadSampleCardsCommand = new RelayCommand(LoadSampleCards, () => !IsBusy);
@@ -124,8 +128,65 @@ namespace WbTnvedManager.ViewModels
             ImportFileCommand = new RelayCommand(ImportFile, () => !IsBusy);
             ExportReportCommand = new RelayCommand(ExportReport, () => !IsBusy);
 
-            // Auto-load sample cards on startup so UI is never blank
+            // Nạp dữ liệu đã lưu từ SQLite nếu có, nếu chưa từng đồng bộ thì nạp thẻ mẫu
+            LoadInitialData();
+
+            // Nếu người dùng đã cài API key, tự động chạy 1 lần đồng bộ ngầm khi mở app
+            if (_apiClient.HasApiKey)
+            {
+                _ = Task.Run(async () =>
+                {
+                    // Chờ 1 giây để giao diện WPF tải xong hoàn toàn
+                    await Task.Delay(1000);
+                    Application.Current?.Dispatcher?.Invoke(async () =>
+                    {
+                        await AutoSyncOnStartupAsync();
+                    });
+                });
+            }
+        }
+
+        private void LoadInitialData()
+        {
+            try
+            {
+                var cached = _cacheRepository.LoadCachedAuditResults();
+                if (cached != null && cached.Count > 0)
+                {
+                    _allAuditResults = cached;
+                    HookAuditItemEvents();
+                    ApplyFilter();
+                    UpdateCounts();
+                    StatusMessage = $"Đã tải {_allAuditResults.Count} sản phẩm từ bộ nhớ máy. ({NeedsFixCount} sản phẩm cần sửa)";
+                    return;
+                }
+            }
+            catch { }
+
+            // Fallback khi mới cài app chưa có dữ liệu đồng bộ
             LoadSampleCards();
+        }
+
+        private async Task AutoSyncOnStartupAsync()
+        {
+            if (IsBusy || !_apiClient.HasApiKey) return;
+            StatusMessage = "🔄 Đang tự động đồng bộ danh sách sản phẩm từ Wildberries...";
+            await ScanAndAuditAsync(suppressErrorDialog: true);
+        }
+
+        private void HookAuditItemEvents()
+        {
+            foreach (var r in _allAuditResults)
+            {
+                r.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(AuditResultItem.IsSelected))
+                    {
+                        UpdateCounts();
+                        (BulkFixCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    }
+                };
+            }
         }
 
         private void ImportFile()
@@ -284,7 +345,7 @@ namespace WbTnvedManager.ViewModels
             StatusMessage = $"Đã nạp {_allAuditResults.Count} thẻ sản phẩm mẫu. {NeedsFixCount} thẻ phát hiện sai mã cần sửa.";
         }
 
-        public async Task ScanAndAuditAsync()
+        public async Task ScanAndAuditAsync(bool suppressErrorDialog = false)
         {
             IsBusy = true;
             _cts = new CancellationTokenSource();
@@ -299,21 +360,18 @@ namespace WbTnvedManager.ViewModels
                 _allAuditResults = _auditService.AuditCards(cards);
 
                 // Listen to selection changes for count
-                foreach (var r in _allAuditResults)
+                HookAuditItemEvents();
+
+                // Lưu kết quả quét vào SQLite để không bị mất khi đóng ứng dụng
+                try
                 {
-                    r.PropertyChanged += (s, e) =>
-                    {
-                        if (e.PropertyName == nameof(AuditResultItem.IsSelected))
-                        {
-                            UpdateCounts();
-                            (BulkFixCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                        }
-                    };
+                    _cacheRepository.SaveAuditResults(_allAuditResults);
                 }
+                catch { }
 
                 ApplyFilter();
                 UpdateCounts();
-                StatusMessage = $"Quét hoàn tất: {_allAuditResults.Count} thẻ sản phẩm. {NeedsFixCount} thẻ cần sửa đổi.";
+                StatusMessage = $"Đã đồng bộ xong {cards.Count} thẻ sản phẩm. {NeedsFixCount} thẻ cần sửa đổi.";
             }
             catch (OperationCanceledException)
             {
@@ -322,7 +380,10 @@ namespace WbTnvedManager.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
-                MessageBox.Show($"Lỗi quét thẻ sản phẩm:\n{ex.Message}", "Lỗi API", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (!suppressErrorDialog)
+                {
+                    MessageBox.Show($"Lỗi quét thẻ sản phẩm:\n{ex.Message}", "Lỗi API", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             finally
             {
@@ -371,6 +432,22 @@ namespace WbTnvedManager.ViewModels
                 {
                     fixedCount = await _bulkUpdateService.ExecuteBulkFixAsync(selectedToFix, 50, progress, _cts.Token);
                 }
+
+                // Cập nhật trạng thái vào SQLite để lưu giữ trạng thái sửa chữa
+                try
+                {
+                    foreach (var item in selectedToFix)
+                    {
+                        _cacheRepository.UpdateAuditStatus(
+                            item.NmId, 
+                            item.Status, 
+                            item.StatusMessage, 
+                            item.Status == AuditStatus.UpdatedSuccess ? item.SuggestedTnved : null, 
+                            item.Status == AuditStatus.UpdatedSuccess ? item.SuggestedGender : null,
+                            item.Card);
+                    }
+                }
+                catch { }
 
                 UpdateCounts();
                 ApplyFilter();

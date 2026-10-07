@@ -402,8 +402,89 @@ namespace WbTnvedManager.Tests
             Assert.Equal(AuditStatus.UpdatedSuccess, item.Status);
         }
 
+        [Fact]
+        public void WbCardCacheRepository_ShouldSaveAndLoadAuditResultsCorrectly()
+        {
+            var cacheRepo = new WbCardCacheRepository($"Data Source={_testDbPath}");
+
+            // Ensure WbCardCache table exists
+            using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_testDbPath}"))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS WbCardCache (
+                        NmId INTEGER PRIMARY KEY,
+                        VendorCode TEXT DEFAULT '',
+                        Title TEXT DEFAULT '',
+                        SubjectId INTEGER DEFAULT 0,
+                        SubjectName TEXT DEFAULT '',
+                        CurrentTnved TEXT DEFAULT '',
+                        CurrentGender TEXT DEFAULT '',
+                        DetectedMaterial TEXT DEFAULT '',
+                        SuggestedTnved TEXT DEFAULT '',
+                        SuggestedGender TEXT DEFAULT '',
+                        MatchReason TEXT DEFAULT '',
+                        Status INTEGER DEFAULT 0,
+                        StatusMessage TEXT DEFAULT '',
+                        CardJson TEXT NOT NULL,
+                        UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );
+                ";
+                cmd.ExecuteNonQuery();
+            }
+
+            var sampleItem = new AuditResultItem
+            {
+                Card = new WbCardItem
+                {
+                    NmId = 99887766,
+                    VendorCode = "CACHE-TEST-01",
+                    Title = "Test Card Persistence",
+                    SubjectId = 105,
+                    SubjectName = "Футболка",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6109100000" },
+                        new() { Id = 8, Name = "Пол", Value = "Женский" }
+                    }
+                },
+                CurrentTnved = "6109100000",
+                CurrentGender = "Женский",
+                DetectedMaterial = "Хлопок",
+                SuggestedTnved = "6109100000",
+                SuggestedGender = "Женский",
+                MatchReason = "Khớp hoàn toàn",
+                Status = AuditStatus.MatchOk,
+                StatusMessage = "Mã TNVED và giới tính chuẩn xác."
+            };
+
+            // 1. Save
+            cacheRepo.SaveAuditResults(new List<AuditResultItem> { sampleItem });
+
+            // 2. Load
+            var loaded = cacheRepo.LoadCachedAuditResults();
+            Assert.Single(loaded);
+            var loadedItem = loaded[0];
+            Assert.Equal(99887766, loadedItem.NmId);
+            Assert.Equal("CACHE-TEST-01", loadedItem.VendorCode);
+            Assert.Equal("6109100000", loadedItem.CurrentTnved);
+            Assert.Equal(AuditStatus.MatchOk, loadedItem.Status);
+
+            // 3. Update status
+            cacheRepo.UpdateAuditStatus(99887766, AuditStatus.UpdatedSuccess, "Đã sửa xong", "6109100000", "Женский");
+            var reloaded = cacheRepo.LoadCachedAuditResults();
+            Assert.Equal(AuditStatus.UpdatedSuccess, reloaded[0].Status);
+            Assert.Equal("Đã sửa xong", reloaded[0].StatusMessage);
+
+            // 4. Clear cache
+            cacheRepo.ClearCache();
+            Assert.Empty(cacheRepo.LoadCachedAuditResults());
+        }
+
         private class FakeWbApiClient : IWbApiClient
         {
+            public bool HasApiKey => true;
             public void UpdateConfiguration(string apiKey, string baseUrl, int rateLimitDelayMs) { }
             public Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
             public Task<List<WbCardItem>> GetAllCardsAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new List<WbCardItem>());

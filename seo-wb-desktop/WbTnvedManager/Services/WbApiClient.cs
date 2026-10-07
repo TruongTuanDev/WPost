@@ -17,6 +17,8 @@ namespace WbTnvedManager.Services
         private string _apiKey = string.Empty;
         private string _baseUrl = "https://content-api.wildberries.ru";
 
+        public bool HasApiKey => !string.IsNullOrWhiteSpace(_apiKey);
+
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             PropertyNameCaseInsensitive = true

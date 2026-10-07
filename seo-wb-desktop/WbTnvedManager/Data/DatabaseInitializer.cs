@@ -54,6 +54,26 @@ namespace WbTnvedManager.Data
 
                 CREATE INDEX IF NOT EXISTS idx_tnved_subject_gender ON TnvedMatrix(SubjectId, Gender);
                 CREATE INDEX IF NOT EXISTS idx_tnved_code ON TnvedMatrix(TnvedCode);
+
+                CREATE TABLE IF NOT EXISTS WbCardCache (
+                    NmId INTEGER PRIMARY KEY,
+                    VendorCode TEXT DEFAULT '',
+                    Title TEXT DEFAULT '',
+                    SubjectId INTEGER DEFAULT 0,
+                    SubjectName TEXT DEFAULT '',
+                    CurrentTnved TEXT DEFAULT '',
+                    CurrentGender TEXT DEFAULT '',
+                    DetectedMaterial TEXT DEFAULT '',
+                    SuggestedTnved TEXT DEFAULT '',
+                    SuggestedGender TEXT DEFAULT '',
+                    MatchReason TEXT DEFAULT '',
+                    Status INTEGER DEFAULT 0,
+                    StatusMessage TEXT DEFAULT '',
+                    CardJson TEXT NOT NULL,
+                    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_card_cache_status ON WbCardCache(Status);
             ";
             createTableCmd.ExecuteNonQuery();
 

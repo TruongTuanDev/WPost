@@ -8,6 +8,7 @@ namespace WbTnvedManager.Services
 {
     public interface IWbApiClient
     {
+        bool HasApiKey { get; }
         void UpdateConfiguration(string apiKey, string baseUrl, int rateLimitDelayMs);
         Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default);
         Task<List<WbCardItem>> GetAllCardsAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default);
