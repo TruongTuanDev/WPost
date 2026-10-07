@@ -1,4 +1,6 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -48,6 +50,35 @@ namespace WbTnvedManager.ViewModels
         public bool IsTesting { get => _isTesting; set => SetProperty(ref _isTesting, value); }
         public bool IsTestingNk { get => _isTestingNk; set => SetProperty(ref _isTestingNk, value); }
 
+        private CertificateItem? _selectedCertificate;
+        private string _selectedCertificateDetails = string.Empty;
+
+        public ObservableCollection<CertificateItem> AvailableCertificates { get; } = new();
+
+        public CertificateItem? SelectedCertificate
+        {
+            get => _selectedCertificate;
+            set
+            {
+                if (SetProperty(ref _selectedCertificate, value) && value != null)
+                {
+                    DigitalSignatureInfo = value.FormattedString;
+                    if (!string.IsNullOrEmpty(value.Inn))
+                    {
+                        LegalEntityInn = value.Inn;
+                    }
+                    DigitalSignatureStatus = value.IsValid ? "VERIFIED" : "EXPIRED";
+                    SelectedCertificateDetails = $"Chủ thể: {value.Subject}\nThuật toán: {value.KeyAlgorithm} {(value.IsGost ? "[Chuẩn GOST Nga]" : "")}\nKhóa bí mật: {(value.HasPrivateKey ? "Có sẵn" : "Không có")}\nThời hạn: {value.NotBefore:dd/MM/yyyy} -> {value.NotAfter:dd/MM/yyyy}";
+                }
+            }
+        }
+
+        public string SelectedCertificateDetails
+        {
+            get => _selectedCertificateDetails;
+            set => SetProperty(ref _selectedCertificateDetails, value);
+        }
+
         public System.Collections.ObjectModel.ObservableCollection<string> KizReleaseMethods { get; } = new()
         {
             "Sản xuất tại Nga",
@@ -60,6 +91,7 @@ namespace WbTnvedManager.ViewModels
         public ICommand TestConnectionCommand { get; }
         public ICommand TestNkConnectionCommand { get; }
         public ICommand CheckDigitalSignatureCommand { get; }
+        public ICommand RefreshCertificatesCommand { get; }
 
         public SettingsViewModel(AppSettings settings, IWbApiClient apiClient, INationalCatalogConnector? nkConnector = null, CryptoProCertificateService? certService = null)
         {
@@ -89,6 +121,44 @@ namespace WbTnvedManager.ViewModels
             TestConnectionCommand = new RelayCommand(async () => await TestConnectionAsync());
             TestNkConnectionCommand = new RelayCommand(async () => await TestNkConnectionAsync());
             CheckDigitalSignatureCommand = new RelayCommand(CheckDigitalSignature);
+            RefreshCertificatesCommand = new RelayCommand(() => LoadCertificates(true));
+
+            LoadCertificates(false);
+        }
+
+        public void LoadCertificates(bool notifyUser = false)
+        {
+            AvailableCertificates.Clear();
+            var certs = _certService.GetAvailableCertificates();
+            foreach (var c in certs)
+            {
+                AvailableCertificates.Add(c);
+            }
+
+            if (AvailableCertificates.Count > 0)
+            {
+                var thumb = System.Text.RegularExpressions.Regex.Match(DigitalSignatureInfo ?? "", @"[a-fA-F0-9]{40}").Value;
+                var match = AvailableCertificates.FirstOrDefault(c => c.Thumbprint.Equals(thumb, StringComparison.OrdinalIgnoreCase)) 
+                            ?? AvailableCertificates.FirstOrDefault(c => c.IsGost) 
+                            ?? AvailableCertificates.First();
+                SelectedCertificate = match;
+            }
+            else
+            {
+                SelectedCertificateDetails = "Không phát hiện chứng thư số GOST/CryptoPro trong Windows Store. Bạn có thể cắm USB Token hoặc dán thông tin thủ công bên dưới.";
+            }
+
+            if (notifyUser && Application.Current != null)
+            {
+                if (certs.Count > 0)
+                {
+                    MessageBox.Show($"Đã quét thành công {certs.Count} chứng thư số từ Windows Certificate Store!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy chứng thư số trong Windows Certificate Store.\nHãy cắm USB Token Rutoken/JaCarta hoặc cài đặt chứng thư số qua CryptoPro CSP.", "Chưa tìm thấy chữ ký số", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
 
         public void SaveSettings()

@@ -72,11 +72,37 @@
                     <TextBlock Text="“Uỷ quyền từ một người khác” là nhận hàng ký gửi từ cá nhân. Áp dụng cho mua KIZ và đưa vào lưu thông của cửa hàng này; các lô đã tạo giữ nguyên hình thức ban đầu." FontSize="11" Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,16"/>
 
                     <!-- Chu ky so -->
-                    <TextBlock Text="Chữ ký số (ЭЦП / УКЭП)" FontWeight="SemiBold" Margin="0,0,0,4" Foreground="#334155"/>
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chữ ký số (ЭЦП / УКЭП):" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Command="{Binding RefreshCertificatesCommand}" Content="🔄 Quét lại Token / Store" Background="Transparent" Foreground="#2563EB" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold" FontSize="12"/>
+                    </Grid>
+
+                    <!-- Danh sach chung thu so phat hien tren he thong -->
+                    <ComboBox ItemsSource="{Binding AvailableCertificates}" SelectedItem="{Binding SelectedCertificate}" Height="38" VerticalContentAlignment="Center" Margin="0,0,0,6" Background="#F8FAFC">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="12" Foreground="#0F172A"/>
+                                    <TextBlock Text="{Binding FormattedString}" FontSize="10" Foreground="#64748B" FontFamily="Consolas"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="Chuỗi định dạng chứng thư số (hoặc nhập thủ công / dán Thumbprint):" FontSize="11" Foreground="#64748B" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding DigitalSignatureInfo, UpdateSourceTrigger=PropertyChanged}" Height="34" VerticalContentAlignment="Center" Margin="0,0,0,8" Padding="6,0" FontFamily="Consolas" Foreground="#047857"/>
 
+                    <!-- Chi tiet chung thu so -->
+                    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+                        <TextBlock Text="{Binding SelectedCertificateDetails}" FontSize="11" Foreground="#475569" TextWrapping="Wrap"/>
+                    </Border>
+
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                        <Button Command="{Binding CheckDigitalSignatureCommand}" Content="Kiểm tra chữ ký" Background="#8B5CF6" Foreground="White" FontWeight="Bold" Padding="14,8" BorderThickness="0" Cursor="Hand"/>
+                        <Button Command="{Binding CheckDigitalSignatureCommand}" Content="Kiểm tra chữ ký" Background="#8B5CF6" Foreground="White" FontWeight="Bold" Padding="16,8" BorderThickness="0" Cursor="Hand"/>
                         <TextBlock Text="{Binding DigitalSignatureStatus}" FontWeight="Bold" FontSize="13" Foreground="#10B981" VerticalAlignment="Center" Margin="14,0,0,0"/>
                     </StackPanel>
 

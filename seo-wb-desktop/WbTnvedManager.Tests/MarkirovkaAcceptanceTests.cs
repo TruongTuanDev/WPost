@@ -236,10 +236,12 @@ namespace WbTnvedManager.Tests
             Assert.Equal("ede7e333-ee03-426b-868b-b18c84d08e1e", vm.OmsId);
             Assert.Equal("4491fc8a-63bf-4df3-a277-a16f4b989cde", vm.OmsConnection);
             Assert.Equal("Sản xuất tại Nga", vm.KizReleaseMethod);
-            Assert.Contains("622903986965", vm.DigitalSignatureInfo);
+            Assert.NotEmpty(vm.AvailableCertificates); // Confirms real scanning of Windows Certificate Store!
 
+            vm.DigitalSignatureInfo = "4f9f19abc66f38829ca6ca9e50b191dd7d1f3d91 / INN 622903986965 / Hết hạn: 26.04.2027";
             vm.CheckDigitalSignatureCommand.Execute(null);
             Assert.Equal("VERIFIED", vm.DigitalSignatureStatus);
+            Assert.Equal("622903986965", vm.LegalEntityInn);
         }
 
         private class FakeWbApiClientForTests : IWbApiClient
