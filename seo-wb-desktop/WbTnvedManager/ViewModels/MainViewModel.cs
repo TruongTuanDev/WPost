@@ -14,8 +14,11 @@ namespace WbTnvedManager.ViewModels
         private readonly MatrixRepository _repository;
         private readonly IWbApiClient _apiClient;
         private readonly TnvedSelectorService _selectorService;
+        private readonly TnvedMatrix104Engine _matrix104Engine;
+        private readonly ProductVariantAuditEngine _specAuditEngine;
         private readonly CardAuditService _auditService;
         private readonly CardBulkUpdateService _bulkUpdateService;
+        private readonly SafeWbUpdatePipeline _safePipeline;
         private readonly CardErrorTrackerService _errorTrackerService;
         private readonly AppUpdateService _updateService;
 
@@ -79,14 +82,17 @@ namespace WbTnvedManager.ViewModels
             _repository = new MatrixRepository();
             _apiClient = new WbApiClient(_settings.ApiKey, _settings.ContentBaseUrl, _settings.RateLimitDelayMs);
             _selectorService = new TnvedSelectorService(_repository);
-            _auditService = new CardAuditService(_selectorService);
+            _matrix104Engine = new TnvedMatrix104Engine();
+            _specAuditEngine = new ProductVariantAuditEngine(_matrix104Engine);
+            _auditService = new CardAuditService(_selectorService, _specAuditEngine);
             _bulkUpdateService = new CardBulkUpdateService(_apiClient);
+            _safePipeline = new SafeWbUpdatePipeline(_apiClient, new RulesEngine(_selectorService));
             _errorTrackerService = new CardErrorTrackerService(_apiClient);
             _updateService = new AppUpdateService();
 
             // Initialize Child ViewModels
             CardBuilderVM = new CardBuilderViewModel(_repository, _selectorService, _apiClient);
-            BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService);
+            BulkAuditVM = new BulkAuditViewModel(_apiClient, _auditService, _bulkUpdateService, _errorTrackerService, _safePipeline);
             DocumentsVM = new DocumentsViewModel();
             SyncCenterVM = new SyncCenterViewModel();
             MatrixManagerVM = new MatrixManagerViewModel(_repository, _apiClient);

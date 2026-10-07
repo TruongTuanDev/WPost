@@ -502,7 +502,7 @@ namespace WbTnvedManager.Services
             if (rule.rule_id == "T001" || rule.rule_id == "T004" || rule.rule_id == "T005" || rule.rule_id == "T008" ||
                 rule.rule_id == "T013" || rule.rule_id == "T016" || rule.rule_id == "T019" || rule.rule_id == "T023" ||
                 rule.rule_id == "T024" || rule.rule_id == "T028" || rule.rule_id == "T029" || rule.rule_id == "T033" || 
-                rule.rule_id == "T036" || rule.rule_id == "T039" || rule.rule_id == "T043" || rule.rule_id == "T047" || 
+                rule.rule_id == "T036" || rule.rule_id == "T039" || rule.rule_id == "T042" || rule.rule_id == "T047" || 
                 rule.rule_id == "T049" || rule.rule_id == "T051" || rule.rule_id == "T054" || rule.rule_id == "T057" || 
                 rule.rule_id == "T060" || rule.rule_id == "T063" || rule.rule_id == "T065" || rule.rule_id == "T067" || 
                 rule.rule_id == "T068" || rule.rule_id == "T069" || rule.rule_id == "T072" || rule.rule_id == "T078" || 
@@ -512,7 +512,7 @@ namespace WbTnvedManager.Services
             }
 
             // 2. SYNTHETIC only rules
-            if (rule.rule_id == "T025" || rule.rule_id == "T030" || rule.rule_id == "T040" || rule.rule_id == "T045" ||
+            if (rule.rule_id == "T025" || rule.rule_id == "T030" || rule.rule_id == "T040" || rule.rule_id == "T043" ||
                 rule.rule_id == "T048" || rule.rule_id == "T050" || rule.rule_id == "T052" || rule.rule_id == "T082" ||
                 rule.rule_id == "T086" || rule.rule_id == "T088" || rule.rule_id == "T094")
             {
@@ -537,7 +537,7 @@ namespace WbTnvedManager.Services
 
             // 5. WOOL / CASHMERE rules
             if (rule.rule_id == "T010" || rule.rule_id == "T011" || rule.rule_id == "T012" || rule.rule_id == "T015" ||
-                rule.rule_id == "T021" || rule.rule_id == "T027" || rule.rule_id == "T032" || rule.rule_id == "T042" ||
+                rule.rule_id == "T021" || rule.rule_id == "T027" || rule.rule_id == "T032" || rule.rule_id == "T045" ||
                 rule.rule_id == "T046" || rule.rule_id == "T053" || rule.rule_id == "T056" || rule.rule_id == "T062" ||
                 rule.rule_id == "T093")
             {

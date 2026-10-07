@@ -67,6 +67,7 @@ namespace WbTnvedManager.Models
 
         public System.Collections.Generic.List<IssueItem> Issues { get; set; } = new();
         public ProductReadinessSummary Readiness { get; set; } = new();
+        public VariantAuditResult? SpecAuditDetails { get; set; }
 
         public bool IsSelected
         {

@@ -330,5 +330,92 @@ namespace WbTnvedManager.Tests
                 if (File.Exists(tempFile)) File.Delete(tempFile);
             }
         }
+
+        [Fact]
+        public void CardAuditService_With104SpecEngine_ShouldDetectMenTrousersT013AndExplainRule()
+        {
+            var matrix104 = new TnvedMatrix104Engine();
+            var specEngine = new ProductVariantAuditEngine(matrix104);
+            var auditService = new CardAuditService(_selector, specEngine);
+
+            var sampleCards = new List<WbCardItem>
+            {
+                new()
+                {
+                    NmId = 55443322,
+                    SubjectId = 505,
+                    SubjectName = "Брюки спортивные",
+                    Title = "Брюки мужские трикотажные хлопковые оверсайз",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6103420000" },
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" },
+                        new() { Id = 10, Name = "Состав", Value = "100% хлопок" }
+                    }
+                }
+            };
+
+            var results = auditService.AuditCards(sampleCards);
+
+            Assert.Single(results);
+            var item = results[0];
+            Assert.Equal(AuditStatus.TnvedMismatch, item.Status);
+            Assert.Equal("6103420001", item.SuggestedTnved);
+            Assert.True(item.CanFix);
+            Assert.NotNull(item.SpecAuditDetails);
+            Assert.Contains("T013", item.SpecAuditDetails.Classification.MatchedRuleIds);
+        }
+
+        [Fact]
+        public async Task SafeWbUpdatePipeline_ShouldExecuteSafeBatchUpdateWithSnapshotHashing()
+        {
+            var mockApi = new FakeWbApiClient();
+            var pipeline = new SafeWbUpdatePipeline(mockApi, new RulesEngine(_selector));
+
+            var item = new AuditResultItem
+            {
+                Card = new WbCardItem
+                {
+                    NmId = 1234567,
+                    VendorCode = "TEST-SKU-1",
+                    Characteristics = new List<WbCharacteristic>
+                    {
+                        new() { Id = 5, Name = "ТНВЭД", Value = "6103420000" },
+                        new() { Id = 8, Name = "Пол", Value = "Мужской" }
+                    }
+                },
+                CurrentTnved = "6103420000",
+                SuggestedTnved = "6103420001",
+                CurrentGender = "Мужской",
+                SuggestedGender = "Мужской",
+                MatchReason = "Chuyển mã lỗi thời sang mã chuẩn 6103420001"
+            };
+
+            var res = await pipeline.ExecuteSafeBatchUpdateAsync(
+                new List<AuditResultItem> { item },
+                new SellerAccount { Id = "SELLER_1" });
+
+            Assert.True(res.Success);
+            Assert.Equal(1, res.SuccessCount);
+            Assert.Single(res.ProcessedChangeSets);
+            Assert.False(string.IsNullOrEmpty(res.ProcessedChangeSets[0].BaseSnapshotHash));
+            Assert.Equal(AuditStatus.UpdatedSuccess, item.Status);
+        }
+
+        private class FakeWbApiClient : IWbApiClient
+        {
+            public void UpdateConfiguration(string apiKey, string baseUrl, int rateLimitDelayMs) { }
+            public Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task<List<WbCardItem>> GetAllCardsAsync(IProgress<string>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new List<WbCardItem>());
+            public Task<(bool Success, string Message)> UpdateCardsBatchAsync(List<WbCardItem> cardsToUpdate, CancellationToken cancellationToken = default) => Task.FromResult((true, "OK"));
+            public Task<List<WbCardErrorItem>> GetCardErrorsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbCardErrorItem>());
+            public Task<List<WbSubjectItem>> GetSubjectsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbSubjectItem>());
+            public Task<List<WbDirectoryTnvedItem>> GetTnvedDirectoryAsync(int? subjectId = null, string? search = null, CancellationToken cancellationToken = default) => Task.FromResult(new List<WbDirectoryTnvedItem>());
+            public Task<List<WbDirectoryTnvedItem>> GetAllTnvedDirectoryAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<WbDirectoryTnvedItem>());
+            public Task<List<string>> GenerateBarcodesAsync(int count = 1, CancellationToken cancellationToken = default) => Task.FromResult(new List<string> { "2000000000001" });
+            public Task<(bool Success, string Message, string RawResponse)> UploadCardsAsync(object cardUploadPayload, CancellationToken cancellationToken = default) => Task.FromResult((true, "Created", "{}"));
+            public Task<(bool Success, string Message)> UploadMediaFileAsync(long nmId, int photoNumber, string fileName, byte[] content, CancellationToken cancellationToken = default) => Task.FromResult((true, "Uploaded"));
+            public Task<(bool Success, string Message)> UploadMediaLinksAsync(long nmId, List<string> links, CancellationToken cancellationToken = default) => Task.FromResult((true, "Uploaded"));
+        }
     }
 }
